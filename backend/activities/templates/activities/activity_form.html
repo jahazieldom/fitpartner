@@ -1,0 +1,118 @@
+<form method="post" class="needs-validation" action="{{ action_url }}">
+    {% csrf_token %}
+    <div class="row g-3">
+        <!-- Activo -->
+        <div class="col-4">
+            <label class="form-check form-switch form-switch-lg">
+                {{ form.is_active }}
+                <span class="form-check-label form-check-label-on">Clase activa</span>
+                <span class="form-check-label form-check-label-off">Clase inactiva</span>
+            </label>
+        </div>
+
+        <div class="col-8">
+            <div class="mb-3">
+                <div class="row g-2  justify-content-end">
+                      {% for choice in form.instance.BG_COLORS %}
+                        <div class="col-auto">
+                        <label class="form-colorinput">
+                            <input
+                            type="radio"
+                            name="{{ form.color_rgb.html_name }}"
+                            value="{{ choice.0 }}"
+                            class="form-colorinput-input"
+                            {% if form.color_rgb.value == choice.0 %}checked{% endif %}
+                            >
+                            <span class="form-colorinput-color bg-{{ choice.1|lower }} rounded-circle"></span>
+                        </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+    <!-- Nombre -->
+    <div class="col-md-6">
+        <label class="form-label">Nombre</label>
+        {{ form.name }}
+    </div>
+
+    <!-- Instructor -->
+    <div class="col-md-6">
+        <label class="form-label">Instructor</label>
+        {{ form.instructor }}
+    </div>
+
+    <!-- Descripción -->
+    <div class="col-12">
+        <label class="form-label">Descripción</label>
+        {{ form.description }}
+    </div>
+
+    <!-- Días -->
+    <div class="col-12">
+        <label class="form-label">Días de la semana</label>
+        <div class="form-selectgroup">
+            {% for checkbox in form.weekdays %}
+            <label class="form-selectgroup-item">
+                {{ checkbox.tag|safe }}
+                <span class="form-selectgroup-label">{{ checkbox.choice_label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {{ form.weekdays.errors }}
+    </div>
+
+
+    <!-- Hora y duración -->
+    <div class="col-md-4">
+        <label class="form-label">Hora de inicio</label>
+        {{ form.start_time }}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Duración (min)</label>
+        {{ form.duration_minutes }}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Capacidad</label>
+        {{ form.capacity }}
+    </div>
+
+    <!-- Fechas -->
+    <div class="col-md-6">
+        <label class="form-label">Fecha inicio</label>
+        <div class="input-icon">
+            <span class="input-icon-addon"><!-- Download SVG icon from http://tabler.io/icons/icon/calendar -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                <path d="M16 3v4"></path>
+                <path d="M8 3v4"></path>
+                <path d="M4 11h16"></path>
+                <path d="M11 15h1"></path>
+                <path d="M12 15v3"></path></svg></span>
+                {{ form.start_date }}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Fecha fin (opcional)</label>
+        <div class="input-icon">
+            <span class="input-icon-addon"><!-- Download SVG icon from http://tabler.io/icons/icon/calendar -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                <path d="M16 3v4"></path>
+                <path d="M8 3v4"></path>
+                <path d="M4 11h16"></path>
+                <path d="M11 15h1"></path>
+                <path d="M12 15v3"></path></svg></span>
+                {{ form.end_date }}
+        </div>
+    </div>
+    </div>
+
+    <div class="card-footer text-end mt-4">
+    <button type="submit" class="btn btn-primary">Guardar clase</button>
+    </div>
+</form>

@@ -1,0 +1,17 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-body">
+  <div class="container-xl">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">{{ title }}</h3>
+      </div>
+      <div class="card-body">
+        {% include 'activities/activity_form.html' with action_url=request.path %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

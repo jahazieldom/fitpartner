@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Entorno virtual (ajusta si usas otro nombre)
+env/
+venv/
+ENV/
+.venv/
+
+# Archivos de configuración locales
+*.env
+*.env.*
+
+# Base de datos SQLite (si la usas)
+*.sqlite3
+*.sqlite3-journal
+
+# Archivos temporales de Django
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Archivos de migración de prueba (si los generas automáticamente)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# Archivos de test coverage
+htmlcov/
+.coverage
+.tox/
+.nox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Pytest
+.pytest_cache/
+
+# VSCode
+.vscode/
+.code-workspace
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# node (si usas npm o yarn en frontend)
+node_modules/
+dist/
+build/
+
+# Archivos de lock y dependencia (opcional si no los versionas)
+Pipfile.lock
+poetry.lock
+
+# Otros entornos
+.idea/

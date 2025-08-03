@@ -1,0 +1,91 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-body">
+  <div class="container-xl">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">{{ title }}</h3>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" autocomplete="off">
+          {% csrf_token %}
+          <div class="d-flex justify-content-between">
+            <div class="form-check mb-3">
+              <label class="form-check form-switch form-switch-lg">
+                {{ form.is_active }}
+                <span class="form-check-label form-check-label-on">Activo</span>
+                <span class="form-check-label form-check-label-off">Inactivo</span>
+              </label>
+            </div>
+  
+            <div class="mb-3">
+              {{ form.photo.label_tag }}
+              {{ form.photo }}
+              {% if form.photo.errors %}
+                <div class="invalid-feedback d-block">{{ form.photo.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                  <div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                  <div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                {% if form.email.errors %}
+                  <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                  <div class="invalid-feedback d-block">{{ form.phone.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.bio.label_tag }}
+            {{ form.bio }}
+            {% if form.bio.errors %}
+              <div class="invalid-feedback d-block">{{ form.bio.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="text-end pt-3">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

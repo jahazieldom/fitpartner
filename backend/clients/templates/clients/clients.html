@@ -1,0 +1,138 @@
+{% extends "core/base.html" %}
+
+{% block panel_header %}
+<div class="page-header d-print-none text-white" aria-label="Page header">
+    <div class="container-xl">
+      <div class="row g-2 align-items-center">
+        <div class="col">
+          <!-- Page pre-title -->
+          <h2 class="page-title">{{ title }}</h2>
+          <div class="page-pretitle">Administra tus clientes</div>
+        </div>
+        <!-- Page title actions -->
+        <div class="col-auto ms-auto d-print-none">
+          <div class="btn-list">
+            <a href="{% url 'clients:client' %}" class="btn btn-primary btn-5 d-none d-sm-inline-block">
+              <!-- Download SVG icon from http://tabler.io/icons/icon/plus -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-2">
+                <path d="M12 5l0 14"></path>
+                <path d="M5 12l14 0"></path>
+              </svg>
+              Agregar cliente
+            </a>
+          </div>
+          <!-- BEGIN MODAL -->
+          <!-- END MODAL -->
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock panel_header %}
+
+{% block content %}
+  <div class="row row-cards">
+    <div class="col-12">
+      {% if not list.object_list %}
+        {% include "utils/empty_state.html" with create_url=crear_cliente_url %}
+      {% else %}
+      <div class="card">
+        <div class="card-table">
+          <div class="card-header">
+            <div class="row w-full">
+              <div class="col-md-12">
+                <div class="ms-auto d-flex flex-wrap btn-list">
+                  <form action="." class="ms-auto d-flex flex-wrap align-items-start btn-list">
+                    <input type="hidden" name="f" value="1">
+
+                    <div class="input-group input-group-flat w-auto">
+                      <span class="input-group-text">
+                        <!-- Download SVG icon from http://tabler.io/icons/icon/search -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                          <path d="M21 21l-6 -6"></path>
+                        </svg>
+                      </span>
+                      {{ filtro_form.q }}
+                      {{ filtro_form.errors }}
+                      <span class="input-group-text">
+                        <kbd>ctrl + K</kbd>
+                      </span>
+                    </div>
+
+                    <div class="input-group input-group-flat w-auto">
+                      <span class="input-group-text px-2">Elem. por página</span>
+                      {{ filtro_form.page_size }}
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary btn-icon">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z" /></svg>
+                    </button>
+
+                    {% if request.GET.f %}
+                    <a href="{{ request.path }}" class="btn btn-danger btn-icon" data-bs-toggle="tooltip" title="Limpiar filtros">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-filter-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13.758 19.414l-4.758 1.586v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v1.5" /><path d="M22 22l-5 -5" /><path d="M17 22l5 -5" /></svg>
+                    </a>
+                    {% endif %}
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="advanced-table">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-selectable">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Plan</th>
+                    <th>Creado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody class="table-tbody">
+                  {% for obj in list.object_list %}
+                  <tr>
+                    <td>{{ obj.get_full_name }}</td>
+                    <td>{{ obj.email|default:'' }}</td>
+                    <td>
+                      {% if obj.current_plan %}
+                      <span class="badge bg-info-lt" data-bs-toggle="tooltip" title="Fecha de expiración: {{ obj.current_plan.expiration_date|date:'d/m/Y' }}">{{ obj.current_plan.plan_expiry_description }}</span>
+                      
+                      <div class="my-1">
+                      {% if obj.current_plan.is_paid %}
+                        <span class="badge bg-success-lt"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-receipt-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2" /><path d="M14.8 8a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1" /><path d="M12 6v10" /></svg> Pagado</span>
+                      {% else %}
+                        <span class="badge bg-danger-lt"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-receipt-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2" /><path d="M14.8 8a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1" /><path d="M12 6v10" /></svg> Pendiente de pago</span>
+                      {% endif %}
+                      </div>
+                        
+                      {% else %}
+                      <span class="badge bg-danger-lt">Sin plan</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {{ obj.created_at }}
+                      <small class="d-block text-muted">(Desde {{ obj.get_source_display }})</small>
+                    </td>
+                    <td>
+                      <div class="btn-list flex-nowrap justify-content-end">
+                        <a href="{% url 'clients:client' obj.id %}"> Editar</a>
+                        <a data-confirm="¿Estás seguro que deseas eliminar este registro?" class="text-danger" href="{% url 'clients:delete_client' obj.id %}"> Eliminar</a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}  
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer">
+             {% include 'utils/pagination.html' %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

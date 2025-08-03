@@ -1,0 +1,414 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" style="margin: 0;">
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ PROJECT_NAME }} / {% block title %}{{ title }}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css">
+    <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
+
+
+    {% block extra_head %}{% endblock %}
+
+    <style>
+      /* Contenedor fijo arriba derecha */
+      #django-messages-container {
+        position: fixed;
+        top: 3rem;
+        right: 1rem;
+        z-index: 1050; /* para que quede encima */
+        max-width: 400px; /* aproximadamente col-md-3 */
+      }
+      /* Espaciado entre alertas */
+      #django-messages-container .alert {
+        margin-bottom: 0.5rem;
+      }
+      .errorlist{
+        list-style: none;
+        padding: 3px;
+        margin: 0;
+        --tblr-text-opacity: 1;
+        color: color-mix(in srgb, var(--tblr-danger) calc(var(--tblr-text-opacity)* 100%), transparent) !important;
+      }
+      .litepicker .container__months .month-item-header button{
+        cursor:  pointer !important;
+      }
+      .litepicker .container__months .month-item-header .button-previous-month svg,
+      .litepicker .container__months .month-item-header .button-next-month svg,
+      .litepicker .container__months .month-item-header .button-previous-month:hover>svg,
+      .litepicker .container__months .month-item-header .button-next-month:hover>svg{
+        fill: transparent
+      }
+        
+    </style>
+
+    <script>
+      function copyToClipboard(element) {
+        const text = element.innerText.trim();
+
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";  // Evita scroll
+        textarea.style.opacity = 0;
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try {
+          const success = document.execCommand("copy");
+          if (success) {
+            const original = element.innerText;
+            element.innerText = "Copiado ✅";
+            setTimeout(() => {
+              element.innerText = original;
+            }, 1000);
+          } else {
+            console.warn("No se pudo copiar el texto");
+          }
+        } catch (err) {
+          console.error("Error al copiar", err);
+        }
+
+        document.body.removeChild(textarea);
+      }
+    </script>
+  </head>
+  <body class="layout-navbar-overlap">
+    <!-- Modal genérico para confirmación -->
+    <div class="modal modal-blur fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirme para continuar</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="confirmModalMessage" class="">
+              <!-- Aquí va el mensaje con HTML -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmModalOk">Continuar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- BEGIN NAVBAR  -->
+      <header class="navbar navbar-expand-md navbar-overlap d-print-none" data-bs-theme="dark">
+        <div class="container-xl">
+          <!-- BEGIN NAVBAR TOGGLER -->
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <!-- END NAVBAR TOGGLER -->
+          <!-- BEGIN NAVBAR LOGO -->
+          <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+            <a href="." aria-label="{{ PROJECT_NAME }}">
+              <img src="{% static 'core/img/logo.png' %}" style="height:35px" alt="{{ PROJECT_NAME }}">
+            </a>
+          </div>
+          <!-- END NAVBAR LOGO -->
+          <div class="navbar-nav flex-row order-md-last">
+            <div class="d-none d-md-flex">
+              <div class="nav-item">
+                <a href="?theme=light" class="nav-link px-0 hide-theme-light" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Enable light mode" data-bs-original-title="Enable light mode">
+                  <!-- Download SVG icon from http://tabler.io/icons/icon/sun -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                    <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
+                    <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+                  </svg>
+                </a>
+              </div>
+              <div class="nav-item dropdown d-none d-md-flex">
+                <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside" aria-expanded="false">
+                  <!-- Download SVG icon from http://tabler.io/icons/icon/bell -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                  </svg>
+                  <span class="badge bg-red"></span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
+                  <div class="card">
+                    <div class="card-header d-flex">
+                      <h3 class="card-title">Notificaciones</h3>
+                      <div class="btn-close ms-auto" data-bs-dismiss="dropdown"></div>
+                    </div>
+                    <div class="list-group list-group-flush list-group-hoverable">
+                      <div class="list-group-item">
+                        <div class="row align-items-center">
+                          <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
+                          <div class="col text-truncate">
+                            <a href="#" class="text-body d-block">Example 1</a>
+                            <div class="d-block text-secondary text-truncate mt-n1">Change deprecated html tags to text decoration classes (#29604)</div>
+                          </div>
+                          <div class="col-auto">
+                            <a href="#" class="list-group-item-actions">
+                              <!-- Download SVG icon from http://tabler.io/icons/icon/star -->
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon text-muted icon-2">
+                                <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path>
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col">
+                          <a href="#" class="btn btn-2 w-100"> Archive all </a>
+                        </div>
+                        <div class="col">
+                          <a href="#" class="btn btn-2 w-100"> Mark all as read </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nav-item dropdown">
+              <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown" aria-label="Open user menu">
+                <span class="avatar avatar-sm" style="background-image: url(./static/avatars/000m.jpg)">
+                  {{ request.user.get_initial_letter }}
+                </span>
+                <div class="d-none d-xl-block ps-2">
+                  <div>{{ request.user.get_full_name }}</div>
+                  <div class="mt-1 small text-secondary">{{ request.user.email }}</div>
+                </div>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" data-bs-theme="light">
+                <a href="./profile.html" class="dropdown-item">Perfil</a>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'general_settings' %}" class="dropdown-item">Configuración</a>
+                <a href="{% url 'logout' %}" class="dropdown-item">Salir</a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <!-- BEGIN NAVBAR MENU -->
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                      <path d="M5 12l-2 0l9 -9l9 9l-2 0"></path>
+                      <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path>
+                      <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span>
+                  <span class="nav-link-title"> Inicio </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'clients:clients' %}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-users"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg></span>
+                  <span class="nav-link-title"> Clientes </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'activities:activities' %}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-menu-3"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 6h10" /><path d="M4 12h16" /><path d="M7 12h13" /><path d="M4 18h10" /></svg></span>
+                  <span class="nav-link-title"> Clases </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'plans:plans' %}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-list-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.5 5.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 11.5l1.5 1.5l2.5 -2.5" /><path d="M3.5 17.5l1.5 1.5l2.5 -2.5" /><path d="M11 6l9 0" /><path d="M11 12l9 0" /><path d="M11 18l9 0" /></svg>  
+                  </span>
+                  <span class="nav-link-title"> Planes </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'staff:instructors' %}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-rosette-discount-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 7.2a2.2 2.2 0 0 1 2.2 -2.2h1a2.2 2.2 0 0 0 1.55 -.64l.7 -.7a2.2 2.2 0 0 1 3.12 0l.7 .7c.412 .41 .97 .64 1.55 .64h1a2.2 2.2 0 0 1 2.2 2.2v1c0 .58 .23 1.138 .64 1.55l.7 .7a2.2 2.2 0 0 1 0 3.12l-.7 .7a2.2 2.2 0 0 0 -.64 1.55v1a2.2 2.2 0 0 1 -2.2 2.2h-1a2.2 2.2 0 0 0 -1.55 .64l-.7 .7a2.2 2.2 0 0 1 -3.12 0l-.7 -.7a2.2 2.2 0 0 0 -1.55 -.64h-1a2.2 2.2 0 0 1 -2.2 -2.2v-1a2.2 2.2 0 0 0 -.64 -1.55l-.7 -.7a2.2 2.2 0 0 1 0 -3.12l.7 -.7a2.2 2.2 0 0 0 .64 -1.55v-1" /><path d="M9 12l2 2l4 -4" /></svg></span>
+                  <span class="nav-link-title"> Instructores </span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'payments:payments' %}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-credit-card-pay"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 19h-6a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5" /><path d="M3 10h18" /><path d="M16 19h6" /><path d="M19 16l3 3l-3 3" /><path d="M7.005 15h.005" /><path d="M11 15h2" /></svg></span>
+                  <span class="nav-link-title"> Pagos </span>
+                </a>
+              </li>
+            </ul>
+            <!-- END NAVBAR MENU -->
+          </div>
+        </div>
+      </header>
+      <!-- END NAVBAR  -->
+      <div class="page-wrapper">
+
+      {% block panel_header %}
+      {% endblock panel_header %}
+                
+        <!-- BEGIN PAGE BODY -->
+        <div class="page-body">
+          <div class="container-xl">
+            {% block content %}{% endblock %}
+
+
+        
+            {% if LOCAL_DEVELOPMENT and TEMPLATE_NAME %}
+              <div ondblclick="copyToClipboard(this)" class="text-end p-2 text-muted" title="Template path">
+                {{ TEMPLATE_NAME }}
+              </div>
+            {% endif %}
+
+            <div id="django-messages-container">
+              {% if messages %}
+                {% for message in messages %}
+                  {% if 'error' in message.tags %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  {% elif 'warning' in message.tags %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {% elif 'success' in message.tags %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                  {% elif 'info' in message.tags %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                  {% else %}
+                    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                  {% endif %}
+
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+
+            </div>
+
+          </div>
+        </div>
+        <!-- END PAGE BODY -->
+          
+      </div>
+    </div>
+
+  <!-- Tabler JS -->
+    <script src="https://unpkg.com/@tabler/core@latest/dist/js/tabler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js" defer></script>
+    <script src="{% static 'core/js/KeyboardShortcuts.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+
+
+
+    <script>
+      function getCookie(name) {
+        const cookieValue = document.cookie
+          .split('; ')
+          .find(row => row.startsWith(name + '='))
+          ?.split('=')[1];
+        return decodeURIComponent(cookieValue || '');
+      }
+      
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('[data-mask]').forEach(function (el) {
+            const maskPattern = el.getAttribute('data-mask');
+
+            // Si es una máscara numérica, usamos el tipo Number
+            if (maskPattern === 'number') {
+              IMask(el, {
+                mask: Number,
+                thousandsSeparator: ',',
+                radix: '.',
+                scale: 2
+              });
+            } else {
+              // Usar como patrón de texto (e.g. (000) 000-0000)
+              IMask(el, {
+                mask: maskPattern
+              });
+            }
+          });
+
+          const modalEl = document.getElementById('confirmModal');
+          const modalMessage = document.getElementById('confirmModalMessage');
+          const modalOk = document.getElementById('confirmModalOk');
+          const bsModal = new tabler.bootstrap.Modal(modalEl);
+
+          let pendingAction = null;
+
+          document.body.addEventListener('click', function (e) {
+            const trigger = e.target.closest('[data-confirm]');
+            if (!trigger) return;
+
+            e.preventDefault();
+
+            const message = trigger.getAttribute('data-confirm');
+            if (!message) return;
+
+            modalMessage.innerHTML = message;
+
+            pendingAction = () => {
+              if (trigger.tagName.toLowerCase() === 'a') {
+                window.location.href = trigger.getAttribute('href');
+              } else if (trigger.tagName.toLowerCase() === 'button' && trigger.type === 'submit') {
+                const form = trigger.closest('form');
+                if (form) form.requestSubmit(trigger);
+              }
+            };
+
+            bsModal.show();
+          });
+
+          modalOk.addEventListener('click', function () {
+            bsModal.hide();
+            if (typeof pendingAction === 'function') {
+              setTimeout(() => pendingAction(), 100);
+            }
+          });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll('.datepicker-default').forEach(function(el) {
+            new Litepicker({
+              element: el,
+              format: 'DD/MM/YYYY',
+              lang: 'es-MX',
+              autoApply: true,
+              singleMode: true,
+              setup: (picker) => {
+                const input = picker.options.element;
+                input.addEventListener('blur', () => {
+                  if (!input.value.trim()) {
+                    picker.clearSelection();
+                  }
+                })
+              },
+              buttonText: {
+                previousMonth: `<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1"><path d="M15 6l-6 6l6 6" /></svg>`,
+                nextMonth: `<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1"><path d="M9 6l6 6l-6 6" /></svg>`,
+              },
+            });
+          });
+        });
+
+        const shortcuts = new KeyboardShortcuts();
+        let searchInput = document.getElementById('{{ filtro_form.q.auto_id }}')
+        
+        if (searchInput) {
+          shortcuts.register('ctrl+k', () => {
+            searchInput?.focus();
+          });
+        }
+
+          shortcuts.start();
+    </script>
+
+
+      {% block js %}
+      {% endblock js %}
+  </body>
+</html>

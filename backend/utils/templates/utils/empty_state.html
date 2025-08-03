@@ -1,0 +1,18 @@
+<div class="empty text-center my-5">
+  <div class="empty-icon mb-5">
+      <div class="icon icon-lg bg-primary-lt text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 " style="width: 4rem; height: 4rem;">
+      <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-database-off"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12.983 8.978c3.955 -.182 7.017 -1.446 7.017 -2.978c0 -1.657 -3.582 -3 -8 -3c-1.661 0 -3.204 .19 -4.483 .515m-2.783 1.228c-.471 .382 -.734 .808 -.734 1.257c0 1.22 1.944 2.271 4.734 2.74" /><path d="M4 6v6c0 1.657 3.582 3 8 3c.986 0 1.93 -.067 2.802 -.19m3.187 -.82c1.251 -.53 2.011 -1.228 2.011 -1.99v-6" /><path d="M4 12v6c0 1.657 3.582 3 8 3c3.217 0 5.991 -.712 7.261 -1.74m.739 -3.26v-4" /><path d="M3 3l18 18" /></svg>
+      </div>
+  </div>
+  <p class="empty-title">No hay registros disponibles</p>
+  <p class="empty-subtitle text-muted">
+    Aún no se ha creado ningún registro en esta sección.
+  </p>
+  {% if create_url %}
+    <div class="empty-action mt-3">
+      <a href="{{ create_url }}" class="btn btn-primary">
+        <i class="ti ti-plus me-1"></i> Crear nuevo
+      </a>
+    </div>
+  {% endif %}
+</div>

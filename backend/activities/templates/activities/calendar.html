@@ -1,0 +1,49 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-body">
+      <div id="calendar"></div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'timeGridWeek',
+      locale: 'es',
+      allDaySlot: false,
+      // slotMinTime: "05:00:00",
+      // slotMaxTime: "22:00:00",
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      events: '{% url "activities:calendar_events" %}',  // << Aquí va tu endpoint
+      eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      },
+      loading: function(isLoading) {
+        if (isLoading) {
+          // Puedes mostrar un loader si quieres
+        }
+      }
+    });
+
+    calendar.render();
+  });
+</script>
+
+
+{% endblock js %}
+  

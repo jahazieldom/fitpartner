@@ -1,0 +1,13 @@
+https://schedly.io/
+https://fitssey.com/es
+
+
+Funcionalidad app movil:
+- Registro de clientes
+- Configuración de perfil
+- Consulta de planes
+- Contratación de plan
+- Apartado de clases
+- Lista de espera a clases
+- Cancelar asistencia de clase
+- Mensajería

@@ -1,0 +1,52 @@
+{% extends "core/settings.html" %}
+
+{% block form_content %}
+<form method="post" autocomplete="off">
+    {% csrf_token %}
+
+    <div class="form-check mb-3">
+        <label class="form-check form-switch form-switch-lg">
+        {{ form.stripe_enabled }}
+        <span class="form-check-label form-check-label-on">Stripe activado</span>
+        <span class="form-check-label form-check-label-off">Stripe desactivado</span>
+        </label>
+    </div>
+
+    {% if form.non_field_errors %}
+        {{ form.non_field_errors }}
+    {% endif %}
+    
+    <div class="mb-3">
+        {{ form.stripe_secret_key.label_tag }}
+        {{ form.stripe_secret_key }}
+        {% if form.stripe_secret_key.errors %}
+        <div class="invalid-feedback d-block">{{ form.stripe_secret_key.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="mb-3">
+        {{ form.stripe_publishable_key.label_tag }}
+        {{ form.stripe_publishable_key }}
+        {% if form.stripe_publishable_key.errors %}
+        <div class="invalid-feedback d-block">{{ form.stripe_publishable_key.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="mb-3">
+        {{ form.stripe_webhook_secret.label_tag }}
+        {{ form.stripe_webhook_secret }}
+        {% if form.stripe_webhook_secret.errors %}
+        <div class="invalid-feedback d-block">{{ form.stripe_webhook_secret.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="mb-3">
+        <label for="">Webhook URL:</label>
+        <input type="text" value="{{ webhook_url }}" class="form-control disabled">
+    </div>
+
+
+
+
+    <div class="text-end pt-3">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+{% endblock %}

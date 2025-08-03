@@ -1,0 +1,42 @@
+
+<form action="{{ action_url }}" method="POST">
+    {% csrf_token %}
+
+    {% if back_url %}
+    <input type="hidden" name="back_url" value="{{ back_url }}">
+    {% endif %}
+    
+    {% with plan=form.instance.client_plan.plan %}
+    <div class="card">
+        <div class="card-status-top bg-info"></div>
+        <div class="ribbon bg-info h2">${{ plan.price }} MXN</div>
+        <div class="card-body">
+            <h3 class="card-title fw-bold">{{ plan.name }}</h3>
+            <p class="text-secondary">
+                {{ plan.description|linebreaks }}
+            </p>
+        </div>
+    </div>        
+    
+    <div class="modal-body">
+        <h5 class="modal-title m-2">Capturar pago</h5>
+        <div class="d-flex align-items-end my-2">
+            <div class="px-2">
+                {{ form.status.label_tag }}
+                {{ form.status }}
+                {{ form.status.errors }}
+            </div>
+            <div class="px-2">
+                {{ form.amount.label_tag }}
+                {{ form.amount }}
+                {{ form.amount.errors }}
+            </div>
+            <div class="px-2">
+                <button type="submit" class="btn btn-primary">Capturar pago</button>
+                <button type="button" class="btn btn-ghost btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    {% endwith %}
+</form>

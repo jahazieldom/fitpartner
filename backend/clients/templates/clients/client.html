@@ -1,0 +1,214 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="page-body">
+    <div class="container-xl">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <h4 class="mb-3">Cuenta de usuario</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                      <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                    {% endif %}
+                  </div>
+      
+                  <div class="col-md-6">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                      <div class="invalid-feedback d-block">{{ form.password.errors }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <!-- Sección: Datos del cliente -->
+                <h4 class="mt-5 mb-3">Datos personales</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                      <div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                  </div>
+      
+                  <div class="col-md-6">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Apellido</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                      <div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                  </div>
+      
+                  <div class="col-md-4">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">Teléfono</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                      <div class="invalid-feedback d-block">{{ form.phone.errors }}</div>
+                    {% endif %}
+                  </div>
+      
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label class="form-label">Fecha de nacimiento</label>
+                      <div class="row g-2">
+                        <div class="col-5">
+                          {{ form.birth_day }}
+                          {{ form.birth_day.errors }}
+                        </div>
+                        <div class="col-3">
+                          {{ form.birth_month }}
+                          {{ form.birth_month.errors }}
+                        </div>
+                        <div class="col-4">
+                          {{ form.birth_year }}
+                          {{ form.birth_year.errors }}
+                        </div>
+                      </div>
+                      {{ form.birth_date.errors }}
+                    </div>
+                  </div>
+                </div>
+      
+                <div class="text-end pt-3">
+                  <button name="redirect_back" value="1" type="submit" class="btn btn-ghost btn-primary">Guardar y seguir editando</button>
+                  <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          {% if form.instance.id %}
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Plan</h3>
+            </div>
+
+            {% if form.instance.current_plan %}
+              <div class="list-group list-group-flush list-group-hoverable">
+                  <div class="list-group-item list-group-item-action active">
+                    <div class="fw-bold">{{ form.instance.current_plan.plan_expiry_description }}</div>
+                    <div>Asignado el {{ form.instance.current_plan.created_at }} por {{ form.instance.current_plan.created_by|default:"" }}</div>
+                    <div class="d-flex flex-wrap align-items-center mt-2">
+                      
+                      {% if not form.instance.current_plan.is_paid %}
+                      <a href="#" data-url="{% url 'clients:get_client_plan_payment_form' form.instance.current_plan.pk %}?back_url={{ request.path }}" class="btn btn-ghost btn-success me-2 client-plan-payment-form">Capturar pago</a>
+                      {% endif %}
+                      <div>
+                        <label class="form-check m-0">
+                          {{ form.cancel_current_plan }}
+                          <span class="form-check-label fw-bold text-danger">Cancelar plan</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+              {% endif %}
+
+              {% if not form.instance.current_plan %}
+              <div class="card-body">
+                <div class="row">
+                  <div class="mb-3">
+                    <div class="form-selectgroup form-selectgroup-boxes d-flex">
+                      {% for radio in form.plan %}
+                        <label class="form-selectgroup-item flex-fill">
+                          <input
+                            type="radio"
+                            name="{{ form.plan.name }}"
+                            value="{{ radio.data.value }}"
+                            id="{{ radio.id_for_label }}"
+                            {% if radio.data.selected %}checked{% endif %}
+                            class="form-selectgroup-input"
+                          >
+                          <div class="form-selectgroup-label d-flex align-items-center p-3">
+                            <div class="me-3">
+                              <span class="form-selectgroup-check"></span>
+                            </div>
+                            <div>
+                              <strong>{{ radio.choice_label }}</strong><br>
+                            </div>
+                          </div>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+            <div class="card-header">
+              <h3 class="card-title">Historial de contrataciones</h3>
+            </div>
+            <div class="list-group list-group-flush list-group-hoverable">
+              {% for client_plan in form.instance.get_plans_history %}
+              <div class="list-group-item">
+                <div class="fw-bold">{{ client_plan.plan }} ({{ client_plan.purchase_date|date:"d F Y" }} a {{ client_plan.expiration_date|date:"d F Y" }})</div>
+                <div class="text-sm text-danger lh-sm">
+                  <div>Cancelado el <b>{{ client_plan.cancelled_at|date:"d/m/Y H:i" }}</b> {% if client_plan.cancelled_by %}por {{ client_plan.cancelled_by|default:"" }}{% endif %}</div>
+                  {% if client_plan.cancellation_comments %}
+                  <p class="fst-italic py-1 m-0">{{ client_plan.cancellation_comments }}</p>
+                  {% endif %}
+                </div>
+                  
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="modal modal-blur fade rounded" id="modal_client_plan_form" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="modal_form"></div>
+    </div>
+  </div>
+</div>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.body.addEventListener('click', async function (event) {
+    const target = event.target.closest('.client-plan-payment-form');
+
+    if (target) {
+      event.preventDefault();  // Evita el salto por href="#"
+      const url = target.getAttribute('data-url');
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            // 'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+        });
+
+        if (!response.ok) throw new Error('Error en la respuesta');
+
+        const data = await response.json(); // Se espera JSON con una clave `html`
+        document.getElementById('modal_form').innerHTML = data.html;
+        const modalEl = document.getElementById('modal_client_plan_form');
+        const bsModal = new tabler.bootstrap.Modal(modalEl);
+        bsModal.show();
+      } catch (error) {
+        console.error('Error al cargar el formulario:', error);
+        alert('Hubo un problema al cargar el formulario.');
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

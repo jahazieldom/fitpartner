@@ -1,0 +1,159 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">{{ title }}</h3>
+        </div>
+        <form method="post" autocomplete="off">
+          {% csrf_token %}
+          <div class="card-body">
+
+            <!-- Nombre y Precio -->
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label">{{ form.name.label }}</label>
+                {{ form.name }}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">{{ form.price.label }}</label>
+                {{ form.price }}
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="mb-3">
+              <div class="form-group">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+              </div>
+            </div>
+
+            <!-- Tipo de acceso y valor -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-group">
+                  <label class="form-label">{{ form.access_type.label }}</label>
+                  {{ form.access_type }}
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-group">
+                  <label class="form-label">{{ form.access_value.label }}</label>
+                  {{ form.access_value }}
+                  <small class="form-hint">Ej. número de sesiones o días</small>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Tipo de vigencia y duración -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-group">
+                  <label class="form-label">{{ form.validity_type.label }}</label>
+                  {{ form.validity_type }}
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="form-group">
+                  <label class="form-label">{{ form.validity_duration_months.label }}</label>
+                  {{ form.validity_duration_months }}
+                  <small class="form-hint">Meses de validez</small>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="form-group">
+                  <label class="form-label">{{ form.validity_duration_days.label }}</label>
+                  {{ form.validity_duration_days }}
+                  <small class="form-hint">Días adicionales</small>
+                </div>
+              </div>
+            </div>
+
+            
+
+            <!-- Fecha fija (si aplica) -->
+            <div class="mb-3">
+              <div class="form-group">
+                <label class="form-label">{{ form.fixed_expiry_date.label }}</label>
+                <div class="input-icon">
+                    <span class="input-icon-addon"><!-- Download SVG icon from http://tabler.io/icons/icon/calendar -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                        <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                        <path d="M16 3v4"></path>
+                        <path d="M8 3v4"></path>
+                        <path d="M4 11h16"></path>
+                        <path d="M11 15h1"></path>
+                        <path d="M12 15v3"></path></svg></span>
+                        {{ form.fixed_expiry_date }}
+                </div>
+                <small class="form-hint py-1">Solo se usa si eliges "Fecha fija"</small>
+              </div>
+            </div>
+
+            <!-- Errores generales -->
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+          </div>
+          <div class="card-footer text-end">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+
+{% block js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const accessTypeField = document.getElementById("id_access_type");
+    const accessValueField = document.getElementById("id_access_value").closest(".form-group");
+
+    const validityTypeField = document.getElementById("id_validity_type");
+    const fixedExpiryDateField = document.getElementById("id_fixed_expiry_date").closest(".form-group");
+    const durationFields = [
+        document.getElementById("id_validity_duration_months").closest(".form-group"),
+        document.getElementById("id_validity_duration_days").closest(".form-group"),
+    ];
+
+    function toggleFields() {
+        // Access Type
+        if (["fixed_sessions", "fixed_days"].includes(accessTypeField.value)) {
+            accessValueField.style.display = "block";
+        } else {
+            accessValueField.style.display = "none";
+        }
+
+        // Validity Type
+        if (validityTypeField.value === "fixed_date") {
+            fixedExpiryDateField.style.display = "block";
+            durationFields.forEach(el => el.style.display = "none");
+        } else if (["from_purchase", "from_first_use"].includes(validityTypeField.value)) {
+            fixedExpiryDateField.style.display = "none";
+            durationFields.forEach(el => el.style.display = "block");
+        } else {
+            fixedExpiryDateField.style.display = "none";
+            durationFields.forEach(el => el.style.display = "none");
+        }
+    }
+
+    accessTypeField.addEventListener("change", toggleFields);
+    validityTypeField.addEventListener("change", toggleFields);
+
+    toggleFields(); // inicial
+    
+});
+</script>
+{% endblock js %}
+  
