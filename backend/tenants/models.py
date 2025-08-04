@@ -57,14 +57,22 @@ class UserCompany(models.Model):
     def __str__(self):
         return f"{self.user_email} ↔ {self.company_schema_name}"
     
+    @cached_property
+    def tenant(self):
+        return Company.objects.get(schema_name=self.company_schema_name)
+
+    @cached_property
+    def company_settings(self):
+        from core.models import CompanySettings
+        with schema_context(self.company_schema_name):
+            return CompanySettings.objects.first()
+        
+    
     def get_company_name(self):
-        return self.company_schema_name
+        return self.company_settings.name or self.company_schema_name
     
     def get_base_url(self):
         return settings.TENANT_URL_TEMPLATE.format(self.company_schema_name)
-
-    def get_company_name(self):
-        return self.company_schema_name
 
     @cached_property
     def user_obj(self):

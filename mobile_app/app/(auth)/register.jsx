@@ -1,25 +1,58 @@
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { layout, typography, components, spacing } from "../../styles";
-import { validateEmail, register } from "../../services/auth";
+import { validateEmail, register, getCompanies } from "../../services/auth";
 import { useAuth } from "@/context/AuthContext";
 import { showMessage } from "react-native-flash-message";
+import Autocomplete from '@/components/Autocomplete';
+
+const getRandomString = (length = 10) => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for(let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 export default function RegisterWizard({ onSubmit }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const initialPass = getRandomString(9)
+  const [email, setEmail] = useState(getRandomString(5) + "@test.com");
+  const [password, setPassword] = useState(initialPass);
+  const [confirmPassword, setConfirmPassword] = useState(initialPass);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [schema, setSchema] = useState("");
+  const [company, setCompany] = useState(null);
+  const [companies, setCompanies] = useState([]);
 
   const goToLogin = () => router.push("/(auth)/login");
   const { setAuthenticated } = useAuth();
+
+  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getCompanies();
+        // Por seguridad valida que sea array
+        if (Array.isArray(response.companies)) {
+          setCompanies(response.companies);
+        } else {
+          setCompanies([]);
+        }
+      } catch (err) {
+        console.error(err);
+        setCompanies([]);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const validatePassword = (password) => {
     const minLength = 8;
@@ -81,12 +114,13 @@ export default function RegisterWizard({ onSubmit }) {
 
     try {
       let response = await register({
-        schema: schema,
+        schema: company?.schema_name,
         email: email,
         password: password,
         first_name: firstName,
         last_name: lastName,
         birth_date: Boolean(birthDate) ? birthDate : null,
+        source: "mobile_app",
       })
       let user = response.instance
       setAuthenticated(true)
@@ -143,13 +177,17 @@ export default function RegisterWizard({ onSubmit }) {
 
       {step === 2 && (
         <>
-          <TextInput
-            placeholder="Gimnasio"
-            style={components.input}
-            value={schema}
-            onChangeText={setSchema}
-          />
-          { Boolean(schema && schema.trim()) && 
+          <View style={{ position: "relative", zIndex: 10 }}>
+            <Autocomplete
+              data={companies}
+              labelKey="name"
+              placeholder="Seleccionar gimnasio"
+              initialValue={company}
+              onSelect={(item) => setCompany(item)}
+              containerStyle={{ marginVertical: 16 }}
+            />
+          </View>
+          { Boolean(company) && 
           <>
             <TextInput
               placeholder="First Name"

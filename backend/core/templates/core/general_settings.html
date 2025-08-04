@@ -14,6 +14,22 @@
     </div>
     
     <div class="mb-3">
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        {% if form.name.errors %}
+        <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="mb-3">
+        {{ form.full_address.label_tag }}
+        {{ form.full_address }}
+        {% if form.full_address.errors %}
+        <div class="invalid-feedback d-block">{{ form.full_address.errors }}</div>
+        {% endif %}
+    </div>
+    <hr>
+    <div class="mb-3">
         {{ form.contact_name.label_tag }}
         {{ form.contact_name }}
         {% if form.contact_name.errors %}
@@ -41,15 +57,7 @@
         </div>
         </div>
     </div>
-
-    <div class="mb-3">
-        {{ form.full_address.label_tag }}
-        {{ form.full_address }}
-        {% if form.full_address.errors %}
-        <div class="invalid-feedback d-block">{{ form.full_address.errors }}</div>
-        {% endif %}
-    </div>
-
+    
     <div class="text-end pt-3">
         <button type="submit" class="btn btn-primary">Guardar</button>
         </div>

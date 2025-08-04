@@ -133,6 +133,7 @@ class GeneralSettingsForm(FormControlMixin, forms.ModelForm):
         model = CompanySettings
         fields = [
             "logo",
+            "name",
             "contact_name",
             "contact_email",
             "contact_phone",

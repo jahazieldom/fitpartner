@@ -15,6 +15,10 @@ function getHostFromUrl(url) {
   }
 }
 
+async function setUserLocalStorage(user) {
+  await setItem('user', JSON.stringify(user));
+}
+
 async function setCompanyLocalStorage(company) {
     await setItem(TOKEN_KEY_ACCESS, company.access);
     await setItem(TOKEN_KEY_REFRESH, company.refresh);
@@ -35,6 +39,7 @@ export async function login(email, password) {
 
     const company = data.instance.companies[0]
     await setCompanyLocalStorage(company)
+    await setUserLocalStorage(data.instance)
     return data;
   } catch (error) {
     console.error(error);
@@ -51,6 +56,7 @@ export async function register(payload) {
 
     const company = data.instance.companies[0]
     await setCompanyLocalStorage(company)
+    await setUserLocalStorage(data.instance)
     return data;
   } catch (error) {
     console.error(error);
@@ -66,6 +72,18 @@ export async function validateEmail(email) {
     });
     return data;
   } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function getCompanies() {
+  try {
+    const data = await apiFetch("/companies/", {
+      method: "GET",
+    });
+    return data;
+  } catch (error) {
     console.log(error);
     throw error;
   }
@@ -74,7 +92,7 @@ export async function validateEmail(email) {
 export async function logout(router) {
   await removeItem(TOKEN_KEY_ACCESS);
   await removeItem(TOKEN_KEY_REFRESH);
-  router.replace("/(auth)/login");
+  router.replace("/(auth)/");
 }
 
 export async function refreshToken() {

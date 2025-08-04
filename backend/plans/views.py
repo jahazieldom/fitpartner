@@ -48,7 +48,6 @@ def plans(request):
 @login_required
 def delete_plan(request, pk):
     instance = Plan.objects.get(pk=pk)
-    instance.user_obj.companies.filter(company=get_tenant()).delete()
     instance.delete()
     messages.success(request, "Los datos han sido guardados correctamente")
     return redirect('plans:plans') 
@@ -58,7 +57,8 @@ def plan(request, pk=None):
     title = "Agregar plan"
     instance = Plan(created_by=request.user)
 
-    stripe.api_key = request.tenant.settings.stripe_secret_key
+    if request.tenant.settings.stripe_enabled:
+        stripe.api_key = request.tenant.settings.stripe_secret_key
 
     if pk:
         instance = Plan.objects.get(pk=pk)
@@ -78,7 +78,7 @@ def plan(request, pk=None):
             price_changed = "price" in form.changed_data
             
             # Crear o actualizar producto y precio en Stripe
-            if request.tenant.settings.stripe_enabled and not plan.stripe_price_id or price_changed:
+            if request.tenant.settings.stripe_enabled and (not plan.stripe_price_id or price_changed):
                 # Crear product en Stripe solo si no existe (primera vez)
                 stripe_product_id = None
                 if not original or not original.stripe_price_id:

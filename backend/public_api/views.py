@@ -113,3 +113,22 @@ def validate_email(request):
         "status": "success",
         "message": "Email válido"
     })
+
+@api_view(['GET'])
+@permission_classes([])
+@authentication_classes([])
+def companies(request):
+    data = []
+
+    for company in Company.objects.all().exclude(schema_name="public"):
+        data.append({
+            "schema_name": company.schema_name,
+            "name": company.name,
+            "logo": "https://placehold.co/500x300",
+        })
+
+    return Response({
+        "status": "success",
+        "companies": data,
+    })
+    

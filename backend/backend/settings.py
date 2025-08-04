@@ -44,13 +44,10 @@ SHARED_APPS = (
     "tenants",
 )
 
-AUTH_USER_MODEL = "accounts.User"
-
 TENANT_APPS = (
     "django.contrib.admin",
     "django.contrib.auth",
     "sh",
-    "accounts",
     "rest_framework",
     "rest_framework_simplejwt",
     "api",
@@ -112,7 +109,7 @@ DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 DATABASES = {
     "default": {
         "ENGINE": "django_tenants.postgresql_backend",
-        "NAME": "fitpartner",
+        "NAME": "muvon",
         # 'USER': 'usuario',
         # 'PASSWORD': 'tu_password',
         # 'HOST': 'localhost',
@@ -168,7 +165,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.backends.EmailBackend',  # primero el email backend
+    'core.backends.EmailBackend',  # primero el email backend
     'django.contrib.auth.backends.ModelBackend',  # opcional como fallback
 ]
 
@@ -238,5 +235,5 @@ SIMPLE_JWT = {
 
 
 
-TENANT_DOMAIN_TEMPLATE = "{}.fp"
-TENANT_URL_TEMPLATE = "http://{}.fp:8000"
+TENANT_DOMAIN_TEMPLATE = "{}.local"
+TENANT_URL_TEMPLATE = "http://{}.local:8000"

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from .models import *
 from plans.models import Plan
 from payments.models import Payment
-from accounts.models import UserCompany
+from tenants.models import UserCompany
 from utils.functions import get_tenant
 from datetime import date
 import locale
@@ -110,6 +110,10 @@ class ClientForm(FormControlMixin, forms.ModelForm):
 
             if email and User.objects.filter(email=email).exists():
                 self.add_error('email', "Este correo ya está registrado.")
+        else:
+            if password:
+                self.instance.user.set_password(password)
+                self.instance.user.save()
 
         return cleaned_data
 
@@ -126,7 +130,13 @@ class ClientForm(FormControlMixin, forms.ModelForm):
                 first_name=self.cleaned_data['first_name'],
                 last_name=self.cleaned_data['last_name'],
             )
-            UserCompany.objects.create(user=user, company=get_tenant())
+            UserCompany.objects.create(
+                user_email=user.email,
+                password=user.password,
+                company_schema_name=get_tenant().schema_name,
+                first_name=user.first_name,
+                last_name=user.last_name,
+            )
             self.instance.user = user
         
         else:

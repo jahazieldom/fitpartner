@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import CompanySettings
+from utils.functions import get_tenant
 from django.shortcuts import redirect
 
 def logout_view(request):
@@ -99,6 +100,10 @@ def general_settings(request):
         form = GeneralSettingsForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
             form.save()
+            tenant = get_tenant()
+            tenant.name = form.instance.name
+            tenant.save(update_fields=["name"])
+
             messages.success(request, "Los datos han sido guardados correctamente")
             return redirect(".")
 

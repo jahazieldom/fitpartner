@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 export default function LoginForm({ onSubmit }) {
   const router = useRouter();
   
-  const [email, setEmail] = useState("jahaziel@admintotal.com");
+  const [email, setEmail] = useState("iliana@test.com");
   const [password, setPassword] = useState("oikjijok");
   const { setAuthenticated } = useAuth();
 

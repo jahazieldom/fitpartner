@@ -14,7 +14,6 @@ class Command(BaseCommand):
                 'name': 'Admin Company',
                 'paid_until': None,
                 'on_trial': False,
-                'created_on': None  # usa timezone.now() si tu modelo lo requiere
             }
         )
 

@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.conf import settings
 from clients.models import Client, ClientPlan
 from plans.models import Plan
+from core.models import CompanySettings
 from .serializers import PlanSerializer, RegisterSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -62,5 +63,51 @@ def create_checkout_link(request):
     return Response({"url": checkout_session.url})
 
 @api_view(['GET'])
-def user_info(request):
-    pass
+def company_info(request):
+    conf = CompanySettings.objects.first()
+    info = {
+        "name": conf.name,
+        "full_address": conf.full_address,
+        "contact_name": conf.contact_name,
+        "contact_email": conf.contact_email,
+        "contact_phone": conf.contact_phone,
+        "lat": conf.lat,
+        "lng": conf.lng,
+        "stripe_enabled": conf.stripe_enabled,
+    }
+    return Response(info) 
+
+@api_view(['GET'])
+def user_dashboard(request):
+    conf = CompanySettings.objects.first()
+
+    current_plan = request.user.client.current_plan
+    plans = []
+
+    for plan in Plan.objects.all():
+        plans.append(PlanSerializer(plan).data)
+
+    if current_plan:
+        current_plan = {
+            "name": current_plan.plan.name,
+            "purchase_date": current_plan.purchase_date.isoformat() if current_plan.purchase_date else None,
+            "first_use_date": current_plan.first_use_date.isoformat() if current_plan.first_use_date else None,
+            "is_active": current_plan.is_active,
+        }
+
+    company_info = {
+        "name": conf.name,
+        "full_address": conf.full_address,
+        "contact_name": conf.contact_name,
+        "contact_email": conf.contact_email,
+        "contact_phone": conf.contact_phone,
+        "lat": conf.lat,
+        "lng": conf.lng,
+        "stripe_enabled": conf.stripe_enabled,
+    }
+
+    return Response({
+        "company_info": company_info,
+        "current_plan": current_plan,
+        "plans": plans
+    })

@@ -39,6 +39,17 @@ export async function apiFetch(endpoint, options = {}, token = null) {
 
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log("Request failed:");
+      console.log("→ URL:", error.config?.url);
+      console.log("→ Method:", error.config?.method?.toUpperCase());
+      console.log("→ Status:", error.response?.status);
+      console.log("→ Response data:", error.response?.data);
+      console.log("→ Request headers:", error.config?.headers);
+      console.log("→ Request body:", error.config?.data);
+    } else {
+      console.error("Unknown error:", error);
+    }
     const status = error.response?.status || 500;
     const data = error.response?.data || null;
     throw { status, data };
@@ -67,11 +78,6 @@ export async function apiFetchTenant(endpoint, options = {}) {
   };
 
   let url = `${baseUrl}${endpoint}`
-  
-  console.log("=============")
-  console.log(url)
-  console.log(headers)
-  console.log("=============")
 
   try {
     const response = await axios.request({
@@ -83,7 +89,17 @@ export async function apiFetchTenant(endpoint, options = {}) {
 
     return response.data;
   } catch (error) {
-    console.log(error)
+    if (axios.isAxiosError(error)) {
+      console.log("Request failed:");
+      console.log("→ URL:", error.config?.url);
+      console.log("→ Method:", error.config?.method?.toUpperCase());
+      console.log("→ Status:", error.response?.status);
+      console.log("→ Response data:", error.response?.data);
+      console.log("→ Request headers:", error.config?.headers);
+      console.log("→ Request body:", error.config?.data);
+    } else {
+      console.error("Unknown error:", error);
+    }
     const status = error.response?.status || 500;
     const data = error.response?.data || null;
     throw { status, data };

@@ -1,7 +1,8 @@
 from django.db import models
-from accounts.models import User
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -24,12 +25,16 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+
 class CompanySettings(models.Model):
     logo = models.ImageField(upload_to="logos", null=True, blank=True)
+    app_banner = models.ImageField(upload_to="logos", null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    full_address = models.TextField(null=True, blank=True)
+
     contact_name = models.CharField(max_length=255, null=True, blank=True)
     contact_email = models.EmailField(max_length=255, null=True, blank=True)
     contact_phone = models.CharField(max_length=20, null=True, blank=True)
-    full_address = models.TextField(null=True, blank=True)
     lat = models.CharField(max_length=255, null=True, blank=True)
     lng = models.CharField(max_length=255, null=True, blank=True)
     stripe_enabled = models.BooleanField(default=False)
