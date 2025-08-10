@@ -1,6 +1,5 @@
 import { Text } from "react-native";
 
-// Mapas para pesos y tamaños
 const fontWeights = {
   light: "Cairo_300Light",
   regular: "Cairo_400Regular",
@@ -15,8 +14,8 @@ const fontSizes = {
 
 export default function CustomText({
   children,
-  weight = "regular", // 'light' | 'regular' | 'bold'
-  size = "medium",     // 'small' | 'medium' | 'large'
+  weight = "regular",
+  size = "medium",
   style,
   ...props
 }) {
@@ -26,7 +25,7 @@ export default function CustomText({
   return (
     <Text
       {...props}
-      style={[{ fontFamily, fontSize }, style]}
+      style={[{ fontFamily, fontSize }, style]} // combina estilos internos y externos
     >
       {children}
     </Text>

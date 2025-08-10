@@ -25,3 +25,10 @@ export const removeItem = async (key) => {
     console.error("Error removing from storage:", error);
   }
 };
+
+export const getCurrentCompany = async () => {
+  const currentCompany = await getItem("currentCompany")
+  if (currentCompany) {
+    return JSON.parse(currentCompany)
+  }
+}

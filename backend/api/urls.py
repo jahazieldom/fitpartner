@@ -25,6 +25,7 @@ urlpatterns = [
     path('create_checkout_link/', views.create_checkout_link, name='create_checkout_link'),
     path('user/dashboard/', views.user_dashboard, name='user_dashboard'),
     path('company_info/', views.company_info, name='company_info'),
+    path('classes/', views.classes, name='classes'),
 
     # Rutas automáticas de los routers (planes, clases, mensajes, etc.)
     path('', include(router.urls)),

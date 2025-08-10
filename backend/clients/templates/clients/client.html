@@ -149,7 +149,7 @@
             <div class="card-header">
               <h3 class="card-title">Historial de contrataciones</h3>
             </div>
-            <div class="list-group list-group-flush list-group-hoverable">
+            <div class="list-group list-group-flush list-group-hoverable" style="max-height: 500px; overflow-y: auto;">
               {% for client_plan in form.instance.get_plans_history %}
               <div class="list-group-item">
                 <div class="fw-bold">{{ client_plan.plan }} ({{ client_plan.purchase_date|date:"d F Y" }} a {{ client_plan.expiration_date|date:"d F Y" }})</div>

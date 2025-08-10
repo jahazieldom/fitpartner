@@ -27,7 +27,9 @@ async function setCompanyLocalStorage(company) {
     } else {
       await setItem("tenantBaseUrl", company.base_url);
     }
+    
     await setItem("tenantHost", getHostFromUrl(company.base_url)); 
+    await setItem("currentCompany", JSON.stringify(company)); 
 }
 
 export async function login(email, password) {

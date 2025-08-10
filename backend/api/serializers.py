@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import get_user_model
 from tenants.models import UserCompany
 from utils.functions import get_tenant
+from activities.models import ActivityTemplate
 
 User = get_user_model()
 
@@ -58,6 +59,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class PlanSerializer(serializers.ModelSerializer):
+    expiration_label = serializers.SerializerMethodField()
+
     class Meta:
         model = Plan
         fields = '__all__'
+
+    def get_expiration_label(self, obj):
+        return obj.expiration_label()
+
+class ActivityTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivityTemplate
+        fields = [
+            "id",
+            "name",
+            "description",
+            "instructor",
+            "weekdays",
+            "start_time",
+            "duration_minutes",
+            "capacity",
+            "start_date",
+            "end_date",
+            "color_rgb",
+        ]

@@ -25,7 +25,7 @@ export function HelloWave() {
   }));
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={{...animatedStyle, marginTop: 125}}>
       <ThemedText style={styles.text}>👋</ThemedText>
     </Animated.View>
   );
@@ -33,8 +33,7 @@ export function HelloWave() {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: 28,
-    lineHeight: 32,
-    marginTop: -6,
+    fontSize: 18,
+    marginTop: -16,
   },
 });

@@ -67,10 +67,12 @@ def payment(request, pk=None):
 
 def stripe_payment_success(request):
     magic_link = f"muvon://payment-success"
+    return redirect(magic_link)
     return HttpResponse({"success": True, "magic_link": magic_link})
 
 def stripe_payment_cancel(request):
     magic_link = f"muvon://payment-cancel"
+    return redirect(magic_link)
     return HttpResponse({"success": True, "magic_link": magic_link})
 
 @csrf_exempt

@@ -13,3 +13,16 @@ export async function getDashboard() {
     throw error;
   }
 }
+
+export async function createCheckoutLink(data) {
+  try {
+    const response = await apiFetchTenant("/api/create_checkout_link/", {
+      method: "POST",
+      body: data,
+    });
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
