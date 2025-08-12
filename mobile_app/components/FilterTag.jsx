@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   tagText: {
-    fontSize: 14,
+    fontSize: 12,
   },
 });

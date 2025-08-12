@@ -6,6 +6,7 @@ import Octicons from "@expo/vector-icons/Octicons";
 import { useAuth } from "@/context/AuthContext";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import AppHeader from "@/components/AppHeader";
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuth();
@@ -34,7 +35,7 @@ export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        header: () => <AppHeader />,
         tabBarActiveTintColor: "tomato",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {

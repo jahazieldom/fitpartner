@@ -6,8 +6,14 @@ from django.conf import settings
 from clients.models import Client, ClientPlan
 from plans.models import Plan
 from core.models import CompanySettings
-from activities.models import ActivityTemplate
-from .serializers import PlanSerializer, RegisterSerializer, ActivityTemplateSerializer
+from activities.models import ActivityTemplate, ActivitySession
+from .serializers import (
+    PlanSerializer, 
+    RegisterSerializer, 
+    ActivityTemplateSerializer, 
+    ActivityFilterSerializer,
+    ActivitySessionSerializer,
+)
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.urls import reverse
@@ -103,6 +109,9 @@ def user_dashboard(request):
             "purchase_date": current_plan.purchase_date.isoformat() if current_plan.purchase_date else None,
             "first_use_date": current_plan.first_use_date.isoformat() if current_plan.first_use_date else None,
             "is_active": current_plan.is_active,
+            "remaining_sessions": current_plan.remaining_sessions,
+            "expiration_date": current_plan.expiration_date,
+            "plan_expiry_description": current_plan.plan_expiry_description(),
             "expiration_label": current_plan.plan.expiration_label(),
         }
 
@@ -126,11 +135,43 @@ def user_dashboard(request):
 def paginated_queryset(queryset, *, serializer, request):
     paginator = CustomLimitOffsetPagination()
     paginated_qs = paginator.paginate_queryset(queryset, request)
-    serializer = ActivityTemplateSerializer(paginated_qs, many=True)
+    _serializer = serializer(paginated_qs, many=True)
 
-    return paginator.get_paginated_response(serializer.data)
+    return paginator.get_paginated_response(_serializer.data)
 
 @api_view(['GET'])
 def classes(request):
-    objects = ActivityTemplate.objects.filter(is_active=True)
+    objects = ActivityTemplate.objects.filter(is_active=True).order_by("name").distinct("name")
     return paginated_queryset(objects, serializer=ActivityTemplateSerializer, request=request)
+
+
+@api_view(['GET'])
+def reservations(request):
+    filter_ser = ActivityFilterSerializer(data=request.data)
+
+    if filter_ser.is_valid():
+        date = filter_ser.validated_data.get("date")
+        class_name = filter_ser.validated_data.get("class_name")
+
+        sessions = ActivitySession.objects.prefetch_related("template").filter(
+            template__is_active=True
+        ).order_by("start_time")
+
+        classes_qs = ActivityTemplate.objects.filter(is_active=True).order_by("name").distinct("name")
+
+        if date:
+            sessions = sessions.filter(date=date)
+
+        if class_name:
+            sessions = sessions.filter(template__name=class_name)
+
+        sessions_data = ActivitySessionSerializer(sessions, many=True).data
+        classes_data = ActivityTemplateSerializer(classes_qs, many=True).data
+
+        return Response({
+            "status": "success",
+            "classes": classes_data,
+            "sessions": sessions_data
+        })
+
+    return Response(filter_ser.errors, status=status.HTTP_400_BAD_REQUEST)

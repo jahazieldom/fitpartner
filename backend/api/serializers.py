@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import get_user_model
 from tenants.models import UserCompany
 from utils.functions import get_tenant
-from activities.models import ActivityTemplate
+from activities.models import ActivityTemplate, ActivitySession
 
 User = get_user_model()
 
@@ -84,3 +84,36 @@ class ActivityTemplateSerializer(serializers.ModelSerializer):
             "end_date",
             "color_rgb",
         ]
+
+class ActivityFilterSerializer(serializers.Serializer):
+    date = serializers.DateField(required=False)
+    class_name = serializers.CharField(required=False)
+
+class ActivitySessionSerializer(serializers.ModelSerializer):
+    attendees = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ActivitySession
+        fields = [
+            "id",
+            "date",
+            "start_time",
+            "capacity",
+            "is_cancelled",
+            "attendees",
+        ]
+    
+    def get_attendees(self, obj):
+        import random
+
+        return random.randint(0, obj.capacity)
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["duration_minutes"] = instance.template.duration_minutes
+
+        data["category"] = {
+            "name": instance.template.name,
+            "color_rgb": instance.template.color_rgb,
+        }
+        return data

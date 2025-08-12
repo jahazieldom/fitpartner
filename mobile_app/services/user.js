@@ -26,3 +26,16 @@ export async function createCheckoutLink(data) {
     throw error;
   }
 }
+
+export async function getReservationPage(params) {
+  try {
+    const data = await apiFetchTenant("/api/reservations/", {
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
