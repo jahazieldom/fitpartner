@@ -75,7 +75,7 @@ class CustomPasswordResetForm(PasswordResetForm):
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
         label=_("Email"),
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"})
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email", "autofocus": "true"})
     )
     password = forms.CharField(
         label=_("Password"),

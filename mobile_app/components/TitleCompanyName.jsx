@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { colors, typography, components, spacing, layout } from "@/styles";
 import CustomText from '@/components/CustomText';
+import { getCurrentCompany } from "@/utils/storage";
 import Octicons from '@expo/vector-icons/Octicons';
 
-export default function TitleCompanyName({company}) {
+export default function TitleCompanyName({}) {
+  const [currentCompany, setCurrentCompany] = useState();
+
+  // Cargar empresa solo una vez
+  useEffect(() => {
+    getCurrentCompany().then(setCurrentCompany);
+  }, []);
+
   return (
     <View style={{
       padding: spacing.sm, 
@@ -13,10 +21,10 @@ export default function TitleCompanyName({company}) {
     }}>
       <View style={[layout.row, {justifyContent: 'space-between'}]}>
         <CustomText style={{fontSize: 23, fontSize: 17, lineHeight: 35 }}>
-          {company?.company_name} 
+          {currentCompany?.company_name} 
         </CustomText>
         <TouchableOpacity>
-          <Octicons name="arrow-switch" size={20} color={colors.blue} />
+          <Octicons name="arrow-switch" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>
     </View>

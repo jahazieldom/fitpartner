@@ -1,11 +1,35 @@
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, SafeAreaView } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import ClientPlanCard from "@/components/ClientPlanCard";
+import TitleCompanyName from "@/components/TitleCompanyName";
+import { getDashboard } from "@/services/user";
+import { colors, spacing, layout } from "@/styles";
 
 export default function SettingsScreen() {
   const { logout, user } = useAuth();
   const router = useRouter();
+  const [company, setCompany] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
+
+  const setInfo = async () => {
+    try {
+      const dashboard = await getDashboard();
+      setCompany(dashboard.company_info);
+      setCurrentPlan(dashboard.current_plan);
+      console.log("dashboard.current_plan", dashboard.current_plan);
+    } catch (error) {
+      console.error("Error al obtener el dashboard:", error);
+    }
+  };
+
+  // Se ejecuta cada vez que la pantalla entra en foco
+  useFocusEffect(
+    useCallback(() => {
+      setInfo();
+    }, [])
+  );
 
   const handleLogout = () => {
     logout();
@@ -13,20 +37,15 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ClientPlanCard planInfo={{
-          "name": "Plan Mensual",
-          "purchase_date": "2025-08-10",
-          "first_use_date": null,
-          "is_active": true,
-          "remaining_sessions": 25,
-          "expiration_date": "2025-09-10",
-          "plan_expiry_description": "Plan Mensual (expira en 30 días)",
-          "expiration_label": "1 mes desde la fecha de compra"
-      }} />
+    <SafeAreaView>
+      <TitleCompanyName />
 
-      <Button title="Cerrar sesión" onPress={handleLogout} />
-    </View>
+      <View style={layout.container}>
+        <ClientPlanCard planInfo={currentPlan} />
+
+        <Button title="Cerrar sesión" onPress={handleLogout} />
+      </View>
+    </SafeAreaView>
   );
 }
 

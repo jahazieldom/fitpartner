@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, RefreshControl, Alert } from "react-native";
+import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, RefreshControl, Alert, FlatList } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { getDashboard, createCheckoutLink } from "@/services/user";
 import { formatCurrency } from "@/utils/functions";
 import { useRouter } from "expo-router";
 import { layout, typography, components, spacing } from "@/styles";
 import {HelloWave} from "@/components/HelloWave"
+import ClassCard from "@/components/ClassCard"
 import { Linking } from "react-native"
 
 
@@ -14,6 +15,7 @@ export default function HomeScreen() {
   const [company, setCompany] = useState(null)
   const [currentPlan, setCurrentPlan] = useState(null)
   const [plans, setPlans] = useState([])
+  const [classes, setClasses] = useState([])
   const [refreshing, setRefreshing] = useState(false)
 
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function HomeScreen() {
     setPlans(dashboard.plans)
     setCompany(dashboard.company_info)
     setCurrentPlan(dashboard.current_plan)
+    setClasses(dashboard.classes || [])
   }
   
   useEffect(() => {
@@ -104,6 +107,27 @@ export default function HomeScreen() {
             </View>
           ))}
         </>
+        }
+
+        {Boolean(classes.length) && 
+        <View>
+          <Text>Clases</Text>
+           <ScrollView
+            horizontal
+            // showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ height: 240,  alignItems: 'center'}}
+          >
+            {classes.map(item => (
+              <ClassCard
+                key={`class-${item.id}`}
+                imageUri="https://example.com/imagen.jpg"
+                name={item.name}
+                description={item.description}
+                days={item.weekdays}
+              />
+            ))}
+          </ScrollView>
+        </View>
         }
 
       </View>

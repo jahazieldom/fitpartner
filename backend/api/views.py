@@ -6,13 +6,15 @@ from django.conf import settings
 from clients.models import Client, ClientPlan
 from plans.models import Plan
 from core.models import CompanySettings
-from activities.models import ActivityTemplate, ActivitySession
+from activities.models import ActivityTemplate, ActivitySession, Reservation
 from .serializers import (
     PlanSerializer, 
     RegisterSerializer, 
     ActivityTemplateSerializer, 
     ActivityFilterSerializer,
     ActivitySessionSerializer,
+    ClientPlanSerializer,
+    ReservationSerializer,
 )
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -104,16 +106,9 @@ def user_dashboard(request):
         plans.append(PlanSerializer(plan).data)
 
     if current_plan:
-        current_plan = {
-            "name": current_plan.plan.name,
-            "purchase_date": current_plan.purchase_date.isoformat() if current_plan.purchase_date else None,
-            "first_use_date": current_plan.first_use_date.isoformat() if current_plan.first_use_date else None,
-            "is_active": current_plan.is_active,
-            "remaining_sessions": current_plan.remaining_sessions,
-            "expiration_date": current_plan.expiration_date,
-            "plan_expiry_description": current_plan.plan_expiry_description(),
-            "expiration_label": current_plan.plan.expiration_label(),
-        }
+        current_plan = ClientPlanSerializer(current_plan).data
+    
+    classes = ActivityTemplate.objects.filter(is_active=True).order_by("name").distinct("name")
 
     company_info = {
         "name": conf.name,
@@ -129,7 +124,8 @@ def user_dashboard(request):
     return Response({
         "company_info": company_info,
         "current_plan": current_plan,
-        "plans": plans
+        "plans": plans,
+        "classes": ActivityTemplateSerializer(classes, many=True).data
     })
 
 def paginated_queryset(queryset, *, serializer, request):
@@ -144,14 +140,20 @@ def classes(request):
     objects = ActivityTemplate.objects.filter(is_active=True).order_by("name").distinct("name")
     return paginated_queryset(objects, serializer=ActivityTemplateSerializer, request=request)
 
-
 @api_view(['GET'])
 def reservations(request):
     filter_ser = ActivityFilterSerializer(data=request.data)
+    client = request.user.client
+    current_plan = client.current_plan
 
     if filter_ser.is_valid():
         date = filter_ser.validated_data.get("date")
         class_name = filter_ser.validated_data.get("class_name")
+        reservations = Reservation.objects.none
+        
+        if current_plan:
+            current_plan.set_remaining_sessions()
+            reservations = current_plan.reservations.filter(cancelled_at__isnull=True)
 
         sessions = ActivitySession.objects.prefetch_related("template").filter(
             template__is_active=True
@@ -170,8 +172,53 @@ def reservations(request):
 
         return Response({
             "status": "success",
+            "current_plan": ClientPlanSerializer(current_plan).data,
             "classes": classes_data,
+            "my_reservations": ReservationSerializer(reservations, many=True).data,
             "sessions": sessions_data
         })
 
     return Response(filter_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def activity_session_book(request, activity_session_id):
+    session = ActivitySession.objects.get(id=activity_session_id)
+    client = request.user.client
+    current_plan = client.current_plan
+    if not current_plan:
+        return Response({
+            "status": "error",
+            "message": "Es necesario contar con un plan activo para poder reservar."
+        }, status=status.HTTP_400_BAD_REQUEST) 
+
+    if not current_plan.remaining_sessions:
+        return Response({
+            "status": "error",
+            "message": "Su plan ha llegado al límite de reservas"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    reservation = Reservation.objects.create(
+        session=session,
+        client_plan=current_plan,
+    )
+    current_plan.set_remaining_sessions()
+    return Response({
+        "status": "success",
+        "remaining_sessions": current_plan.remaining_sessions
+    })
+
+
+@api_view(['POST'])
+def activity_session_waitlist(request, activity_session_id):
+    pass
+
+
+@api_view(['GET'])
+def get_user_reservations(request):
+    today = timezone.now().date()
+    client = request.user.client
+    objects = client.reservations.filter(
+        cancelled_at__isnull=True,
+        session__date__gte=today,
+    )
+    return paginated_queryset(objects, serializer=ActivityTemplateSerializer, request=request)

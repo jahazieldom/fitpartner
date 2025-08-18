@@ -1,12 +1,12 @@
 from plans.models import Plan
-from clients.models import Client
+from clients.models import Client, ClientPlan
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import get_user_model
 from tenants.models import UserCompany
 from utils.functions import get_tenant
-from activities.models import ActivityTemplate, ActivitySession
+from activities.models import ActivityTemplate, ActivitySession, Reservation
 
 User = get_user_model()
 
@@ -117,3 +117,56 @@ class ActivitySessionSerializer(serializers.ModelSerializer):
             "color_rgb": instance.template.color_rgb,
         }
         return data
+
+class ClientPlanSerializer(serializers.ModelSerializer):
+    plan_expiry_description = serializers.SerializerMethodField()
+    expiration_label = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    access_type = serializers.SerializerMethodField()
+    access_value = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClientPlan
+        fields = [
+            "name",
+            "purchase_date",
+            "first_use_date",
+            "is_active",
+            "remaining_sessions",
+            "expiration_date",
+            "plan_expiry_description",
+            "expiration_label",
+            "access_type",
+            "access_value",
+        ]
+    
+    def get_access_type(self, instance):
+        return instance.plan.access_type
+
+    def get_access_value(self, instance):
+        return instance.plan.access_value
+
+    def get_name(self, instance):
+        return instance.plan.name
+
+    def get_plan_expiry_description(self, instance):
+        return instance.plan_expiry_description()
+    
+    def get_expiration_label(self, instance):
+        return instance.plan.expiration_label()
+
+class ReservationSerializer(serializers.ModelSerializer):
+    # session = ActivitySessionSerializer()
+    date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reservation
+        fields = [
+            "id",
+            "session",
+            "date",
+            "reserved_at",
+        ]
+    
+    def get_date(self, instance):
+        return instance.session.date

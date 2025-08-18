@@ -27,7 +27,7 @@ export default function ClientPlanCard({planInfo}) {
     <View style={styles.card}>
       <CustomText style={styles.planName}>{plan_expiry_description}</CustomText>
       <CustomText style={styles.info}>Fecha compra: {purchase_date}</CustomText>
-      <CustomText style={styles.info}>Primer uso: {first_use_date || 'No usado aún'}</CustomText>
+      {/* <CustomText style={styles.info}>Primer uso: {first_use_date || 'No usado aún'}</CustomText> */}
       <CustomText style={styles.info}>Sesiones restantes: {remaining_sessions}</CustomText>
       <CustomText style={styles.info}>Expira el: {expiration_date}</CustomText>
 

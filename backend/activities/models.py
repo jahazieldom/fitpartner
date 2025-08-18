@@ -99,13 +99,17 @@ class Reservation(BaseModel):
     Reserva de un cliente para una sesión.
     """
     session = models.ForeignKey(ActivitySession, on_delete=models.CASCADE, related_name="reservations")
-    client = models.ForeignKey("clients.Client", on_delete=models.CASCADE, related_name="reservations")
+    client_plan = models.ForeignKey("clients.ClientPlan", on_delete=models.CASCADE, related_name="reservations", null=True)
     reserved_at = models.DateTimeField(auto_now_add=True)
     checked_in = models.BooleanField(default=False)
 
+    cancelled_at = models.DateTimeField(null=True)
+    
+
     class Meta:
-        unique_together = ("session", "client")
+        unique_together = ("session", "client_plan")
+        ordering = ("-session__date",)
 
     def __str__(self):
-        return f"{self.client} in {self.session}"
+        return f"{self.client_plan.client} in {self.session}"
 

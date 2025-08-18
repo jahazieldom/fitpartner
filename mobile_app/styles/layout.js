@@ -2,6 +2,10 @@ import { StyleSheet } from "react-native";
 import spacing from "./spacing";
 
 const layout = StyleSheet.create({
+  container: {
+    paddingHorizontal: spacing.md,
+    // flex: 1,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",

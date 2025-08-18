@@ -69,7 +69,7 @@ export default function AppLayout() {
       <Tabs.Screen
         name="classes/index"
         options={{
-          tabBarLabel: "Clases",
+          tabBarLabel: "Mis reservas",
           tabBarButton: noEffectButton,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list-outline" size={size} color={color} />

@@ -39,3 +39,42 @@ export async function getReservationPage(params) {
     throw error;
   }
 }
+
+export async function getReservations(params) {
+  try {
+    const data = await apiFetchTenant("/api/get_user_reservations/", {
+      method: "GET",
+      params: params,
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function bookSession(sessionId) {
+  try {
+    const data = await apiFetchTenant(`/api/sessions/${sessionId}/book/`, {
+      method: "POST",
+      body: {},
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function waitlistSession(sessionId) {
+  try {
+    const data = await apiFetchTenant(`/api/sessions/${sessionId}/waitlist/`, {
+      method: "POST",
+      body: {},
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

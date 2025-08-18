@@ -27,6 +27,9 @@ urlpatterns = [
     path('company_info/', views.company_info, name='company_info'),
     path('classes/', views.classes, name='classes'),
     path('reservations/', views.reservations, name='reservations'),
+    path('get_user_reservations/', views.get_user_reservations, name='get_user_reservations'),
+    path('sessions/<int:activity_session_id>/book/', views.activity_session_book, name='activity_session_book'),
+    path('sessions/<int:activity_session_id>/waitlist/', views.activity_session_waitlist, name='activity_session_waitlist'),
 
     # Rutas automáticas de los routers (planes, clases, mensajes, etc.)
     path('', include(router.urls)),

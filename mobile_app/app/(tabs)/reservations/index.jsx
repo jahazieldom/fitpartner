@@ -9,16 +9,21 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { CalendarProvider, WeekCalendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
 import FilterTag from '@/components/FilterTag';
-import { colors, spacing } from "@/styles";
-import { getCurrentCompany } from "@/utils/storage";
+import { colors, spacing, layout } from "@/styles";
 import TitleCompanyName from "@/components/TitleCompanyName";
-import { getReservationPage } from "@/services/user";
+import { getReservationPage, bookSession, waitlistSession, getReservations } from "@/services/user";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import CustomText from '@/components/CustomText';
+import ReservationConfirm from '@/components/ReservationConfirm';
+import Modal from "react-native-modal";
+import components from '../../../styles/components';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
 
 dayjs.extend(customParseFormat);
 
@@ -35,12 +40,21 @@ export default function MyWeekCalendar() {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [filters, setFilters] = useState([]);
-  const [currentCompany, setCurrentCompany] = useState();
   const [selectedFilter, setSelectedFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(0);
+  const [myReservations, setMyReservations] = useState([]);
 
   const monthName = MONTH_NAMES_ES[today.month()];
   const year = today.year();
+
+  const getMarkedDates = (reservations, dotColor = 'blue') => {
+    return reservations.reduce((acc, reservation) => {
+      acc[reservation.date] = { marked: true, selectedColor: colors.primary };
+      return acc;
+    }, {});
+  };
 
   // Función para cargar datos (usada en efecto y refresh)
   const loadData = useCallback(async (forDate) => {
@@ -51,8 +65,14 @@ export default function MyWeekCalendar() {
       const filterNames = classes.map(c => c.name);
       setFilters(filterNames);
       setSessions(sessions);
+      setMyReservations(res.my_reservations)
+
       if (!selectedFilter && filterNames.length) {
         setSelectedFilter(filterNames[0]);
+      }
+
+      if (res.current_plan) {
+        setCurrentPlan(res.current_plan)
       }
     } catch (err) {
       console.error('Error fetching reservations:', err);
@@ -60,11 +80,6 @@ export default function MyWeekCalendar() {
       setLoading(false);
     }
   }, [selectedFilter]);
-
-  // Cargar empresa solo una vez
-  useEffect(() => {
-    getCurrentCompany().then(setCurrentCompany);
-  }, []);
 
   // Cargar datos cada vez que cambia la fecha
   useEffect(() => {
@@ -80,8 +95,14 @@ export default function MyWeekCalendar() {
       const filterNames = classes.map(c => c.name);
       setFilters(filterNames);
       setSessions(sessions);
+      setMyReservations(res.my_reservations)
+      console.log(res.reservations)
       if (!selectedFilter && filterNames.length) {
         setSelectedFilter(filterNames[0]);
+      }
+
+      if (res.current_plan) {
+        setCurrentPlan(res.current_plan)
       }
     } catch (err) {
       console.error('Error refreshing reservations:', err);
@@ -89,6 +110,38 @@ export default function MyWeekCalendar() {
       setRefreshing(false);
     }
   }, [date, selectedFilter]);
+
+  const handleSessionReservation = (item) => {
+    if (currentPlan && currentPlan.remaining_sessions <= 0) {
+      return Alert.alert("Límite de plan", "Se ha llegado al límite de su plan")
+    }
+
+    setSelectedSession(item);
+  };
+
+  const confirmReservationSession = async () => {
+    try {
+      let response = await bookSession(selectedSession.id)
+      if (response.status == "success") {
+        closeModalReservation(null);
+        onRefresh()
+      } else {
+        Alert.alert("Error al reservar", response?.message);
+      }
+    } catch (error) {
+      Alert.alert("Error al reservar", String(error.data?.message));
+    }
+  };
+
+  const closeModalReservation = () => setSelectedSession(null);
+
+  const handleModalHide = () => {
+    // esto corre después de la animación de salida
+    setSelectedSession(null);
+    
+  };
+
+  const markedDates = getMarkedDates(myReservations)
 
   // Filtrar sesiones según filtro y fecha
   const filteredSessions = sessions.filter(s =>
@@ -113,15 +166,19 @@ export default function MyWeekCalendar() {
     const isFull = item.attendees >= item.capacity;
     const percentage = Math.min((item.attendees / item.capacity) * 100, 100);
 
+    const reserved = Boolean(myReservations.find(x => x.session == item.id))
     return (
       <TouchableOpacity
-        style={[styles.classCard, isFull && { backgroundColor: '#f5f5f5' }]}
-        onPress={() => {
-          console.log(`Sesión seleccionada: ${item.category.name} a las ${item.start_time}`);
-        }}
+        style={[styles.classCard, (isFull && !reserved) && { backgroundColor: '#f5f5f5' }]}
+        onPress={() => handleSessionReservation(item)}
       >
-        <CustomText style={styles.time}>{formatTime(item.start_time)}</CustomText>
-        <CustomText style={styles.className} numberOfLines={1}>
+        <View style={[layout.row, layout.gap]}>
+          {reserved && <FontAwesome name="calendar-check-o" size={13} color={colors.success} /> }
+          <CustomText style={[styles.time, reserved && {color: colors.success}]}> 
+            {formatTime(item.start_time)}
+          </CustomText>
+        </View>
+        <CustomText style={[styles.className]} numberOfLines={1}>
           {item.category.name}
         </CustomText>
         <View style={styles.progressContainer}>
@@ -140,7 +197,7 @@ export default function MyWeekCalendar() {
   return (
     <CalendarProvider date={date} onDateChanged={setDate}>
       <SafeAreaView style={{ flex: 1 }}>
-        {currentCompany && <TitleCompanyName company={currentCompany} />}
+        <TitleCompanyName />
 
         <View style={{ padding: spacing.sm, backgroundColor: 'white' }}>
           <Text style={{ fontSize: 15, color: colors.primary, textAlign: 'center' }}>
@@ -157,11 +214,13 @@ export default function MyWeekCalendar() {
               selectedColor: colors.primary,
               selectedTextColor: '#fff',
             },
+            ...markedDates
           }}
         />
 
         {/* Lista de filtros horizontal */}
-        <View style={{ height: 35, marginVertical: 5 }}>
+        { Boolean(filters && filters.length > 1) && 
+        <View style={{ height: 35, marginTop: 10 }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -177,8 +236,9 @@ export default function MyWeekCalendar() {
             ))}
           </ScrollView>
         </View>
+        }
 
-        <View style={{ paddingHorizontal: spacing.md, flex: 1 }}>
+        <View style={{...layout.container, paddingVertical: spacing.sm, flex: 1}}>
           {loading ? (
             <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#000" />
           ) : filteredSessions.length > 0 ? (
@@ -215,14 +275,44 @@ export default function MyWeekCalendar() {
               <Text style={{ textAlign: 'center', marginTop: 20 }}>No hay clases para este día</Text>
             </ScrollView>
           )}
-
         </View>
+
+        {/* Modal de confirmación */}
+        <Modal
+          isVisible={!!selectedSession}
+          onBackdropPress={closeModalReservation}
+          onSwipeComplete={closeModalReservation}
+          swipeDirection="down"
+          style={styles.modal}
+          coverScreen={false}
+
+          backdropColor="black"      // color del fondo
+          backdropOpacity={0.3}      // opacidad (0 a 1)
+        >
+          <View style={styles.modalContent}>
+            { selectedSession && (
+              <ReservationConfirm  
+              onClose={closeModalReservation} 
+              onConfirm={confirmReservationSession} 
+              session={selectedSession} 
+              />
+            )}
+          </View>
+        </Modal>
       </SafeAreaView>
     </CalendarProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  modal: { justifyContent: "flex-end", margin: 0 },
+  modalContent: {
+    backgroundColor: 'white',
+    marginHorizontal: 13,
+    padding: 20,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+  },
   sectionTitle: {
     fontSize: 15,
     fontWeight: 'bold',

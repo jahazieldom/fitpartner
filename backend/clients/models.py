@@ -74,6 +74,16 @@ class ClientPlan(BaseModel):
     def __str__(self):
         return f"{self.client.get_full_name()} - {self.plan.name}"
     
+    def set_remaining_sessions(self):
+        if self.plan.access_type == "fixed_sessions":
+            self.remaining_sessions = self.plan.access_value
+            reserved = self.reservations.filter(cancelled_at__isnull=True).count()
+            self.remaining_sessions -= reserved
+        else:
+            self.remaining_sessions = None
+
+        self.save(update_fields=["remaining_sessions"])
+    
     def get_payments(self):
         return self.payments.filter(status="paid")
     
@@ -105,10 +115,6 @@ class ClientPlan(BaseModel):
         return self.plan.get_expiry_date(ref_date)
 
     def save(self, *args, **kwargs):
-        if self.plan.access_type == "fixed_sessions":
-            self.remaining_sessions = self.plan.access_value
-        elif self.plan.access_type == "fixed_days":
-            self.remaining_sessions = None  # Could represent with expires_at
         super().save(*args, **kwargs)
     
     def plan_expiry_description(self):
