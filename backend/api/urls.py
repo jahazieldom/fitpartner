@@ -15,6 +15,7 @@ from rest_framework_simplejwt.views import (
 
 router = DefaultRouter()
 router.register(r'plans', views.PlanViewSet, basename='plan')
+router.register(r'push_tokens', views.ClientPushTokenViewSet, basename='push_tokens')
 # router.register(r'classes', ClassViewSet, basename='class')
 # router.register(r'messages', MessageViewSet, basename='message')
 
@@ -27,7 +28,9 @@ urlpatterns = [
     path('company_info/', views.company_info, name='company_info'),
     path('classes/', views.classes, name='classes'),
     path('reservations/', views.reservations, name='reservations'),
-    path('get_user_reservations/', views.get_user_reservations, name='get_user_reservations'),
+    path('reservations/<int:id>/check_in/', views.reservation_check_in, name='reservation_check_in'),
+    path('reservations/<int:id>/cancel/', views.reservation_cancel, name='reservation_cancel'),
+    path('account/reservations/', views.account_reservations, name='account_reservations'),
     path('sessions/<int:activity_session_id>/book/', views.activity_session_book, name='activity_session_book'),
     path('sessions/<int:activity_session_id>/waitlist/', views.activity_session_waitlist, name='activity_session_waitlist'),
 

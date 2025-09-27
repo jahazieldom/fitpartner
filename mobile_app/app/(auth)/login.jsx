@@ -2,45 +2,59 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { layout, typography, components, spacing } from "../../styles";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { login } from "../../services/auth";
+import { login as apiLogin } from "../../services/auth";
 import { showMessage } from "react-native-flash-message";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { useEffect } from 'react';
 
-export default function LoginForm({ onSubmit }) {
+export default function LoginForm() {
   const router = useRouter();
-  
   const [email, setEmail] = useState("iliana@test.com");
   const [password, setPassword] = useState("oikjijok");
-  const { setAuthenticated } = useAuth();
 
-  const handleRegisterPress = async () => {
-    router.push('/(auth)/register')
-  }
+  const {login, authenticated, loading} = useAuth(); 
+
+  useEffect(() => {
+    if (!loading && authenticated) {
+      router.replace("/(tabs)/home"); // si ya hay sesión, ir a home
+    }
+  }, [loading, authenticated]);
+
+  const handleRegisterPress = () => {
+    router.push('/(auth)/register');
+  };
 
   const handleLoginPress = async () => {
     try {
-      let data = await login(email, password);
-      let user = data.instance
-      setAuthenticated(true)
+      // Llamada a la API
+      const data = await apiLogin(email, password);
+
+      // Guardamos la sesión en el contexto y storage
+      await login(data);
+
       showMessage({
-        message: `Hola ${user.first_name}!`,
-        type: "success", // success, info, warning, danger
+        message: `Hola ${data.instance.first_name}!`,
+        type: "success",
         icon: "success",
         duration: 3000,
       });
+
+      router.replace("/(tabs)/home");
     } catch (error) {
-      let errorData = error.data
-      if (errorData.detail) {
-        showMessage({
-          message: "Login incorrecto",
-          description: errorData.detail,
-          type: "danger", // success, info, warning, danger
-          icon: "danger",
-          duration: 3000,
-        });
-      }
+      console.error(error)
+      showMessage({
+        message: "Login incorrecto",
+        description: error?.data?.detail || "Ocurrió un error",
+        type: "danger",
+        icon: "danger",
+        duration: 3000,
+      });
     }
   };
+
+  if (loading || (authenticated && !loading)) {
+    return <View><Text>Cargando...</Text></View>;
+  }
 
   return (
     <View style={[layout.padding]}>
@@ -63,10 +77,17 @@ export default function LoginForm({ onSubmit }) {
         secureTextEntry
       />
 
-      <TouchableOpacity style={[components.button, { marginTop: spacing.md }]} onPress={handleLoginPress}>
+      <TouchableOpacity
+        style={[components.button, { marginTop: spacing.md }]}
+        onPress={handleLoginPress}
+      >
         <Text style={components.buttonText}>Entrar</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[components.button, { marginTop: spacing.md }]} onPress={handleRegisterPress}>
+
+      <TouchableOpacity
+        style={[components.button, { marginTop: spacing.md }]}
+        onPress={handleRegisterPress}
+      >
         <Text style={components.buttonText}>Registrarme</Text>
       </TouchableOpacity>
     </View>

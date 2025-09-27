@@ -13,7 +13,7 @@ from django.utils.dateparse import parse_date
 from datetime import datetime, timedelta, date
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 
 def generate_sessions_for_template(template, days_ahead=30):
     today = date.today()
@@ -25,17 +25,27 @@ def generate_sessions_for_template(template, days_ahead=30):
     
     # borrar solo las que no tengan asistencias
     # o clases apartadas
-    template.sessions.all().delete()
+    template.sessions.annotate(
+        total_reservations=Count("reservations", filter=Q(reservations__cancelled_at__isnull=True))
+    ).filter(total_reservations=0).delete()
 
     current = start
     while current <= final:
         if current.weekday() in template.weekdays:
-            ActivitySession.objects.create(
+            activity_session = ActivitySession.objects.filter(
                 template=template,
                 date=current,
                 start_time=template.start_time,
-                capacity=template.capacity,
-            )
+            ).first()
+
+            if not activity_session:
+                ActivitySession.objects.create(
+                    template=template,
+                    date=current,
+                    start_time=template.start_time,
+                    capacity=template.capacity,
+                )
+            
         current += timedelta(days=1)
 
 

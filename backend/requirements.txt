@@ -21,3 +21,4 @@ urllib3==2.5.0
 python-dateutil==2.9.0.post0
 djangorestframework_simplejwt==5.5.1
 stripe==12.3.0
+exponent_server_sdk==2.2.0

@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-body">
+  <div class="container-xl">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">{{ title }}</h3>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" autocomplete="off">
+          {% csrf_token %}
+          <div class="d-flex justify-content-between">
+            <div class="form-check mb-3">
+              <label class="form-check form-switch form-switch-lg">
+                {{ form.is_active }}
+                <span class="form-check-label form-check-label-on">Activo</span>
+                <span class="form-check-label form-check-label-off">Inactivo</span>
+              </label>
+            </div>
+          </div>         
+
+          <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.full_address.label_tag }}
+            {{ form.full_address }}
+            {% if form.full_address.errors %}
+              <div class="invalid-feedback d-block">{{ form.full_address.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="mb-3">
+                {{ form.contact_name.label_tag }}
+                {{ form.contact_name }}
+                {% if form.contact_name.errors %}
+                  <div class="invalid-feedback d-block">{{ form.contact_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                {{ form.contact_email.label_tag }}
+                {{ form.contact_email }}
+                {% if form.contact_email.errors %}
+                  <div class="invalid-feedback d-block">{{ form.contact_email.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                {{ form.contact_phone.label_tag }}
+                {{ form.contact_phone }}
+                {% if form.contact_phone.errors %}
+                  <div class="invalid-feedback d-block">{{ form.contact_phone.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end pt-3">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

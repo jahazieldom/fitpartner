@@ -1,6 +1,110 @@
 {% extends "core/base.html" %}
 
 {% block content %}
+<style>
+  /* General del calendario */
+.fc {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Encabezado (barra de controles) */
+.fc-toolbar {
+  margin-bottom: 1rem;
+}
+
+.fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Botones */
+.fc-button {
+  background: #f0f0f0;
+  border: none;
+  color: #333;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.fc-button:hover {
+  background: #e0e0e0;
+}
+
+.fc-button-primary {
+  background: #4f46e5; /* azul tenue (indigo) */
+  color: #fff;
+}
+
+.fc-button-primary:hover {
+  background: #4338ca;
+}
+
+/* Cabecera de la cuadrícula (días de la semana) */
+.fc-col-header-cell {
+  background: #f9fafb;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px;
+  color: #555;
+  border: none;
+}
+
+/* Celdas de día */
+.fc-daygrid-day {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.fc-daygrid-day:hover {
+  background: #f9f9ff;
+}
+
+/* Números de día */
+.fc-daygrid-day-number {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 4px 6px;
+  color: #666;
+}
+
+/* Eventos */
+.fc-event {
+  background: #4f46e5; /* Indigo tenue */
+  border: none;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s;
+}
+
+.fc-event:hover {
+  transform: scale(1.02);
+  background: #4338ca;
+}
+
+/* Vista lista */
+.fc-list-day-cushion {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #333;
+}
+
+.fc-list-event {
+  border-left: 4px solid #4f46e5;
+  padding: 6px 10px;
+}
+
+</style>
   <div class="card">
     <div class="card-body">
       <div id="calendar"></div>
@@ -20,8 +124,11 @@
       initialView: 'timeGridWeek',
       locale: 'es',
       allDaySlot: false,
-      // slotMinTime: "05:00:00",
-      // slotMaxTime: "22:00:00",
+      firstDay: 1,
+      
+
+      slotMinTime: "05:00:00",
+      slotMaxTime: "22:00:00",
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',
@@ -37,7 +144,8 @@
         if (isLoading) {
           // Puedes mostrar un loader si quieres
         }
-      }
+      },
+      
     });
 
     calendar.render();

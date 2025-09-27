@@ -111,7 +111,7 @@ export default function HomeScreen() {
 
         {Boolean(classes.length) && 
         <View>
-          <Text>Clases</Text>
+          <Text style={styles.text}>Clases</Text>
            <ScrollView
             horizontal
             // showsHorizontalScrollIndicator={false}

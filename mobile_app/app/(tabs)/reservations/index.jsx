@@ -20,8 +20,9 @@ import { getReservationPage, bookSession, waitlistSession, getReservations } fro
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import CustomText from '@/components/CustomText';
 import ReservationConfirm from '@/components/ReservationConfirm';
+import ReservationInfo from '@/components/ReservationInfo';
+import ReservationWaitlist from '@/components/ReservationWaitlist';
 import Modal from "react-native-modal";
-import components from '../../../styles/components';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 
@@ -45,8 +46,13 @@ export default function MyWeekCalendar() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(0);
   const [myReservations, setMyReservations] = useState([]);
+  
+  let dateObj = today
+  if (date) {
+    dateObj = dayjs(date)
+  }
 
-  const monthName = MONTH_NAMES_ES[today.month()];
+  const monthName = MONTH_NAMES_ES[dateObj.month()];
   const year = today.year();
 
   const getMarkedDates = (reservations, dotColor = 'blue') => {
@@ -96,7 +102,6 @@ export default function MyWeekCalendar() {
       setFilters(filterNames);
       setSessions(sessions);
       setMyReservations(res.my_reservations)
-      console.log(res.reservations)
       if (!selectedFilter && filterNames.length) {
         setSelectedFilter(filterNames[0]);
       }
@@ -134,13 +139,6 @@ export default function MyWeekCalendar() {
   };
 
   const closeModalReservation = () => setSelectedSession(null);
-
-  const handleModalHide = () => {
-    // esto corre después de la animación de salida
-    setSelectedSession(null);
-    
-  };
-
   const markedDates = getMarkedDates(myReservations)
 
   // Filtrar sesiones según filtro y fecha
@@ -166,11 +164,16 @@ export default function MyWeekCalendar() {
     const isFull = item.attendees >= item.capacity;
     const percentage = Math.min((item.attendees / item.capacity) * 100, 100);
 
-    const reserved = Boolean(myReservations.find(x => x.session == item.id))
+    const reserved = Boolean(myReservations.find(x => x.session.id == item.id))
     return (
       <TouchableOpacity
         style={[styles.classCard, (isFull && !reserved) && { backgroundColor: '#f5f5f5' }]}
-        onPress={() => handleSessionReservation(item)}
+        onPress={() => {
+          item.reserved = reserved
+          item.isFull = isFull
+          item.percentage = percentage
+          handleSessionReservation(item)
+        }}
       >
         <View style={[layout.row, layout.gap]}>
           {reserved && <FontAwesome name="calendar-check-o" size={13} color={colors.success} /> }
@@ -206,7 +209,11 @@ export default function MyWeekCalendar() {
         </View>
 
         <WeekCalendar
-          onDayPress={(day) => setDate(day.dateString)}
+          current={date}
+          onDayPress={(day) => {
+            console.log(day.dateString)
+            setDate(day.dateString)
+          }}
           minDate={todayStr}
           markedDates={{
             [date]: {
@@ -290,13 +297,31 @@ export default function MyWeekCalendar() {
           backdropOpacity={0.3}      // opacidad (0 a 1)
         >
           <View style={styles.modalContent}>
-            { selectedSession && (
-              <ReservationConfirm  
-              onClose={closeModalReservation} 
-              onConfirm={confirmReservationSession} 
-              session={selectedSession} 
-              />
-            )}
+            {selectedSession && 
+            <>
+              { !selectedSession.isFull ? (
+                selectedSession.reserved ? (
+                  <ReservationInfo  
+                  onClose={closeModalReservation} 
+                  onConfirm={confirmReservationSession} 
+                  session={selectedSession} 
+                  />
+                ) : (
+                  <ReservationConfirm  
+                  onClose={closeModalReservation} 
+                  onConfirm={confirmReservationSession} 
+                  session={selectedSession} 
+                  />
+                )
+              ): (
+                <ReservationWaitlist  
+                  onClose={closeModalReservation} 
+                  onConfirm={confirmReservationSession} 
+                  session={selectedSession} 
+                />
+              )}
+            </>
+            }
           </View>
         </Modal>
       </SafeAreaView>

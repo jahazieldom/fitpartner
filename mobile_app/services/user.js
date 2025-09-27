@@ -42,7 +42,7 @@ export async function getReservationPage(params) {
 
 export async function getReservations(params) {
   try {
-    const data = await apiFetchTenant("/api/get_user_reservations/", {
+    const data = await apiFetchTenant("/api/account/reservations/", {
       method: "GET",
       params: params,
     });
@@ -75,6 +75,21 @@ export async function waitlistSession(sessionId) {
     return data;
   } catch (error) {
     console.log(error);
+    throw error;
+  }
+}
+
+export async function registerPushToken(pushToken) {
+  try {
+    const data = await apiFetchTenant("/api/push_tokens/", {
+      method: "POST",
+      body: {
+        token: pushToken,
+      },
+    });
+    return data;
+  } catch (error) {
+    console.log("Error registrando push token:", error);
     throw error;
   }
 }

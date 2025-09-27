@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from tenants.models import UserCompany
 from utils.functions import get_tenant
 from activities.models import ActivityTemplate, ActivitySession, Reservation
+from clients.models import ClientPushToken
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -104,9 +106,7 @@ class ActivitySessionSerializer(serializers.ModelSerializer):
         ]
     
     def get_attendees(self, obj):
-        import random
-
-        return random.randint(0, obj.capacity)
+        return obj.attendees.count()
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -156,8 +156,11 @@ class ClientPlanSerializer(serializers.ModelSerializer):
         return instance.plan.expiration_label()
 
 class ReservationSerializer(serializers.ModelSerializer):
-    # session = ActivitySessionSerializer()
+    session = ActivitySessionSerializer()
     date = serializers.SerializerMethodField()
+    attendance = serializers.SerializerMethodField()
+    can_check_in = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
@@ -166,7 +169,30 @@ class ReservationSerializer(serializers.ModelSerializer):
             "session",
             "date",
             "reserved_at",
+            "cancelled_at",
+            "checked_in",
+            "attendance",
+            "can_check_in",
+            "status",
         ]
     
+    def get_attendance(self, instance):
+        if instance.checked_in:
+            return True
+        
+        return False
+
     def get_date(self, instance):
         return instance.session.date
+    
+    def get_can_check_in(self, instance):
+        return instance.can_check_in()
+
+    def status(self, instance):
+        return instance.status
+
+
+class ClientPushTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientPushToken
+        fields = ["token"]

@@ -2,6 +2,7 @@
 from django import forms
 from .models import ActivityTemplate, Weekday
 from core.forms import FormControlMixin
+from locations.models import Location
 
 class ActivityTemplateForm(FormControlMixin, forms.ModelForm):
     weekdays = forms.MultipleChoiceField(
@@ -10,12 +11,19 @@ class ActivityTemplateForm(FormControlMixin, forms.ModelForm):
         label="Días de la semana"
     )
 
+    locations = forms.ModelMultipleChoiceField(
+        queryset=Location.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-selectgroup-input'}),
+        label="Sucursales",
+        required=False
+    )
+
     class Meta:
         model = ActivityTemplate
         fields = [
             'name', 'description', 'instructor', 'weekdays',
             'start_time', 'duration_minutes', 'capacity',
-            'start_date', 'end_date', 'is_active', 'color_rgb'
+            'start_date', 'end_date', 'is_active', 'color_rgb', 'locations'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -45,6 +53,7 @@ class ActivityTemplateForm(FormControlMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['start_date'].input_formats = ['%d/%m/%Y']
         self.fields['end_date'].input_formats = ['%d/%m/%Y']
+        self.fields['locations'].queryset = Location.objects.filter(is_active=True)
 
     def clean_weekdays(self):
         return list(map(int, self.cleaned_data['weekdays']))

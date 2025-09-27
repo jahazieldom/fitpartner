@@ -6,6 +6,7 @@ import ClientPlanCard from "@/components/ClientPlanCard";
 import TitleCompanyName from "@/components/TitleCompanyName";
 import { getDashboard } from "@/services/user";
 import { colors, spacing, layout } from "@/styles";
+import CustomText from '@/components/CustomText';
 
 export default function SettingsScreen() {
   const { logout, user } = useAuth();
@@ -37,15 +38,23 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView>
-      <TitleCompanyName />
+    <>
+    { Boolean(user) &&
+      <SafeAreaView>
+        <TitleCompanyName />
 
-      <View style={layout.container}>
-        <ClientPlanCard planInfo={currentPlan} />
+        <View style={layout.container}>
+          <CustomText>Nombre completo: {user.first_name} {user.last_name}</CustomText>
+          <CustomText>Email: {user.email}</CustomText>
+          <CustomText>Último inicio de sesión: {user.last_login}</CustomText>
 
-        <Button title="Cerrar sesión" onPress={handleLogout} />
-      </View>
-    </SafeAreaView>
+          <ClientPlanCard planInfo={currentPlan} />
+
+          <Button title="Cerrar sesión" onPress={handleLogout} />
+        </View>
+      </SafeAreaView>
+    }
+    </>
   );
 }
 

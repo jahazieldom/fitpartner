@@ -41,6 +41,7 @@ class ActivityTemplate(BaseModel):
     capacity = models.PositiveIntegerField()
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
+    locations = models.ManyToManyField("locations.Location")
 
     is_active = models.BooleanField(default=True)
     color_rgb = models.CharField(null=True, max_length=20, choices=BG_COLORS)
@@ -85,9 +86,15 @@ class ActivitySession(BaseModel):
     def __str__(self):
         return f"{self.template.name} on {self.date}"
 
-    @property
+    @cached_property
+    def attendees(self):
+        return self.reservations.filter(
+            cancelled_at__isnull=True
+        )
+
+    @cached_property
     def available_slots(self):
-        return self.capacity - self.reservations.count()
+        return self.capacity - self.attendees.count()
 
     @property
     def end_time(self):
@@ -101,8 +108,7 @@ class Reservation(BaseModel):
     session = models.ForeignKey(ActivitySession, on_delete=models.CASCADE, related_name="reservations")
     client_plan = models.ForeignKey("clients.ClientPlan", on_delete=models.CASCADE, related_name="reservations", null=True)
     reserved_at = models.DateTimeField(auto_now_add=True)
-    checked_in = models.BooleanField(default=False)
-
+    checked_in = models.DateTimeField(null=True)
     cancelled_at = models.DateTimeField(null=True)
     
 
@@ -112,4 +118,35 @@ class Reservation(BaseModel):
 
     def __str__(self):
         return f"{self.client_plan.client} in {self.session}"
+    
+    @cached_property
+    def status(self):
+        if self.cancelled_at:
+            return "cancelled"
+
+        if self.checked_in:
+            return "checked_in"
+        
+        return "reserved"
+
+    def can_check_in(self):
+        from datetime import datetime, timedelta
+
+        if self.checked_in:
+            return False
+
+        if self.session.is_cancelled:
+            return False
+
+        if not self.session.available_slots:
+            return False
+
+        # Combina fecha y hora de inicio en un solo datetime
+        session_datetime = datetime.combine(self.session.date, self.session.start_time)
+
+        # Permitir check-in 1 hora antes
+        check_in_available_from = session_datetime - timedelta(hours=1)
+        now = datetime.now()
+
+        return now >= check_in_available_from and now <= session_datetime
 

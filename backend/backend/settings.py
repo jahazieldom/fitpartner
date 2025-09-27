@@ -63,7 +63,7 @@ TENANT_APPS = (
     "bookings", #	Reservaciones de sesiones hechas por clientes
     "plans", #	Planes para las clases / actividades
     "payments", #	Registro de pagos
-    # "scheduling", #	(Opcional) Calendario de horarios, disponibilidades
+    "locations", #	Sucursales
 )
 
 INSTALLED_APPS = list(SHARED_APPS) + list(TENANT_APPS)
@@ -237,3 +237,5 @@ SIMPLE_JWT = {
 
 TENANT_DOMAIN_TEMPLATE = "{}.local"
 TENANT_URL_TEMPLATE = "http://{}.local:8000"
+
+EXPO_ACCESS_TOKEN = config('EXPO_ACCESS_TOKEN', default='XXXX')

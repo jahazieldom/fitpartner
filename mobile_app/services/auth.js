@@ -16,6 +16,7 @@ function getHostFromUrl(url) {
 }
 
 async function setUserLocalStorage(user) {
+  console.log("user", user)
   await setItem('user', JSON.stringify(user));
 }
 
@@ -39,9 +40,9 @@ export async function login(email, password) {
       body: { email, password },
     });
 
-    const company = data.instance.companies[0]
-    await setCompanyLocalStorage(company)
-    await setUserLocalStorage(data.instance)
+    // const company = data.instance.companies[0]
+    // await setCompanyLocalStorage(company)
+    // await setUserLocalStorage(data.instance)
     return data;
   } catch (error) {
     console.error(error);

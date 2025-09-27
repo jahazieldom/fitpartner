@@ -7,7 +7,7 @@ const colors = {
   muted: "#eee",
   blue: "#4980c3ff",
   success: "#4caf50",
-  warning: "#FFCC00",
+  warning: "#de9528ff",
   danger: "#FF3B30",
 };
 

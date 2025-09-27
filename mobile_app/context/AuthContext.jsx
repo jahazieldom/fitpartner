@@ -1,39 +1,135 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getItem, removeItem } from "@/utils/storage";
+import { getItem, setItem, removeItem } from "../utils/storage";
+import { useRouter } from "expo-router";
+import useAuthStore from "../store/authStore"; // ✅ importamos el store de zustand
+import ENV from "../config";
 
-const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [isAuthenticated, setAuthenticated] = useState(null);
-  const [user, setUser] = useState(null);
+const AuthContext = createContext();
 
-  const logout = async () => {
-    await removeItem("accessToken");
-    await removeItem("refreshToken");
-    setAuthenticated(false);
-  };
+export const useAuth = () => useContext(AuthContext);
 
+export const AuthProvider = ({ children }) => {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState({
+    authenticated: false,
+    accessToken: null,
+    refreshToken: null,
+    company: null,
+    user: null,
+  });
+
+  // acceso a funciones del store de zustand
+  const { setAuth: setAuthStore, clearAuth: clearAuthStore } = useAuthStore.getState();
+
+  // Carga inicial al iniciar la app
   useEffect(() => {
-    async function checkToken() {
-      const token = await getItem("accessToken");
-      setAuthenticated(!!token);
+    const loadAuthData = async () => {
+      try {
+        const token = await getItem("accessToken");
+        const refresh = await getItem("refreshToken");
+        const companyStorage = await getItem("company");
+        const userStorage = await getItem("user");
 
-      let userData = await getItem('user')
-      if (userData) {
-        setUser(JSON.parse(userData))
+        if (token && companyStorage) {
+          const companyData = JSON.parse(companyStorage);
+          const userData = JSON.parse(userStorage);
+
+          const auth = {
+            authenticated: true,
+            accessToken: token,
+            refreshToken: refresh,
+            company: companyData,
+            user: userData,
+          };
+
+          setState(auth);
+          setAuthStore(auth); // ✅ actualizar store de zustand
+        } else {
+          router.replace("/(auth)/login");
+        }
+      } catch (error) {
+        console.log("Error cargando auth:", error);
+        router.replace("/(auth)/login");
+      } finally {
+        setLoading(false);
       }
+    };
 
-    }
-    checkToken();
+    loadAuthData();
   }, []);
 
+  const login = async (data) => {
+    let firstCompany = data.instance.company || (data.instance.companies?.[0] || {});
+    if (ENV.LOCAL_DEVELOPMENT) {
+      const url = new URL(firstCompany.base_url);
+      console.log(ENV.TENANT_API_BASE_URL)
+      firstCompany.base_url = ENV.TENANT_API_BASE_URL
+      firstCompany.host = url.host
+    }
+
+    const auth = {
+      authenticated: true,
+      accessToken: firstCompany.access,
+      refreshToken: firstCompany.refresh,
+      company: firstCompany,
+      user: data.instance,
+    };
+
+    setState(auth);
+    setAuthStore(auth); // ✅ actualizar store de zustand
+
+
+    // Guardar en storage
+    await setItem("accessToken", firstCompany.access);
+    await setItem("refreshToken", firstCompany.refresh);
+    await setItem("company", JSON.stringify(auth.company));
+    await setItem("user", JSON.stringify(auth.user));
+  };
+
+  const setCompany = async (newCompany) => {
+    const updatedState = {
+      ...state,
+      company: newCompany,
+    };
+
+    setState(updatedState);          // Actualiza el contexto
+    setAuthStore(updatedState);      // Actualiza el store de zustand
+    await setItem("company", JSON.stringify(newCompany)); // Guarda en storage
+  };
+
+  const logout = async () => {
+    setState({
+      authenticated: false,
+      accessToken: null,
+      refreshToken: null,
+      company: null,
+      user: null,
+    });
+
+    clearAuthStore(); // ✅ limpiar store de zustand
+
+    await removeItem("accessToken");
+    await removeItem("refreshToken");
+    await removeItem("company");
+    await removeItem("user");
+
+    router.replace("/(auth)/login");
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setAuthenticated, logout, user }}>
+    <AuthContext.Provider
+      value={{
+        ...state,
+        loading,
+        login,
+        logout,
+        setCompany,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
-}
+};

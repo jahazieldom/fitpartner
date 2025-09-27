@@ -9,17 +9,19 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AppHeader from "@/components/AppHeader";
 
 export default function AppLayout() {
-  const { isAuthenticated } = useAuth();
+  const { authenticated } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated === null) return;
+    if (authenticated === null) return;
     const inAppGroup = segments[0] === "(tabs)";
-    if (!isAuthenticated && inAppGroup) {
+
+    if (!authenticated && inAppGroup) {
+      console.log("Redirecting!!!!!!!!!!!!!")
       router.replace("/(auth)/login");
     }
-  }, [isAuthenticated, segments]);
+  }, [authenticated, segments]);
 
   const noEffectButton = (props) => (
     <Pressable

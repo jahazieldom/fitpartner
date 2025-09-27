@@ -54,6 +54,20 @@
 
     <!-- Días -->
     <div class="col-12">
+        <label class="form-label">Sucursales</label>
+        <div class="form-selectgroup">
+            {% for checkbox in form.locations %}
+            <label class="form-selectgroup-item">
+                {{ checkbox.tag|safe }}
+                <span class="form-selectgroup-label">{{ checkbox.choice_label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {{ form.weekdays.errors }}
+    </div>
+
+    <!-- Días -->
+    <div class="col-12">
         <label class="form-label">Días de la semana</label>
         <div class="form-selectgroup">
             {% for checkbox in form.weekdays %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path("clients/", include("clients.urls", namespace="clients")),
     path("plans/", include("plans.urls", namespace="plans")),
     path("payments/", include("payments.urls", namespace="payments")),
+    path("locations/", include("locations.urls", namespace="locations")),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     # path('sh/', include('sh.urls')),

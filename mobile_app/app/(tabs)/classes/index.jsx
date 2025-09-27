@@ -1,60 +1,29 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, Image, FlatList, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, Image, FlatList, RefreshControl, SafeAreaView } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import { getClasses } from "@/services/classes";
-import { colors } from "@/styles";
+import { colors, components, layout } from "@/styles";
 import { getCurrentCompany } from "@/utils/storage";
 import TitleCompanyName from "@/components/TitleCompanyName";
+import { getReservations } from "@/services/user";
+import CustomText from '@/components/CustomText';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-function ClassCard({ imageUri, name, description, days }) {
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-  return (
-    <View style={styles.card}>
-      <View style={styles.content}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
-        ) : (
-          <View style={[styles.image, styles.imagePlaceholder]}>
-            <Text style={styles.imagePlaceholderText}>No Image</Text>
-          </View>
-        )}
-        <Text style={styles.name}>{name}</Text>
-        {Boolean(description) && 
-          <Text style={styles.description} numberOfLines={2}>{description}</Text>
-        }
-        <View style={styles.daysContainer}>
-          {days && days.length > 0 ? (
-            days.map((day) => (
-              <View key={day} style={styles.dayBadge}>
-                <Text style={styles.dayText}>{dayNames[day]}</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noDays}>Sin días asignados</Text>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-export default function ClassesScreen() {
+export default function reservationsScreen() {
   const { logout, user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [classes, setClasses] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [currentCompany, setCurrentCompany] = useState();
 
-  const loadClasses = async () => {
+  const loadreservations = async () => {
     setLoading(true);
     try {
-      const response = await getClasses();
-      setClasses(response.results);
+      const response = await getReservations();
+      setReservations(response.results);
     } catch (error) {
-      console.error("Error loading classes:", error);
+      console.error("Error loading reservations:", error);
     }
     setLoading(false);
   };
@@ -66,39 +35,72 @@ export default function ClassesScreen() {
 
   useEffect(() => {
     loadCompany();
-    loadClasses();
+    loadreservations();
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadClasses();
+    await loadreservations();
     setRefreshing(false);
   }, []);
 
-  return (
-    <View style={{ flex: 1 }}>
-      {Boolean(currentCompany) && <TitleCompanyName company={currentCompany} />}
 
-      <FlatList
-        data={classes}
-        keyExtractor={(item) => `class-${item.id}`}
-        renderItem={({ item }) => (
-          <ClassCard
-            imageUri="https://example.com/imagen.jpg"
-            name={item.name}
-            description={item.description}
-            days={item.weekdays}
-          />
-        )}
-        contentContainerStyle={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
-        }
-        ListEmptyComponent={() => !loading && (
-          <Text style={{ textAlign: "center", marginTop: 20 }}>No hay clases disponibles</Text>
-        )}
-      />
-    </View>
+  return (
+
+    <SafeAreaView style={{ flex: 1 }}>
+      <TitleCompanyName />
+      <View style={{ padding: 10}}>
+        <FlatList
+          data={reservations}
+          keyExtractor={(item) => `class-${item.id}`}
+          renderItem={({ item }) => {
+            const isCancelled = Boolean(item.cancelled_at)
+            const checkedIn = Boolean(item.checked_in)
+            
+            let labelText 
+            let icon = <FontAwesome name="calendar-plus-o" size={20} color={colors.blue} />
+
+            switch (item.status) {
+              case "checked_in":
+                icon = <FontAwesome name="calendar-check-o" size={20} color={colors.success} />
+                labelText = "Asistencia"
+                break;
+              case "cancelled":
+                icon = <FontAwesome name="calendar-times-o" size={20} color={colors.danger} />
+                labelText = "Reservación cancelada"
+                break;
+            }
+
+            return (
+            <View style={{...layout.row, ...components.card, padding: 8, marginVertical: 0, marginBottom: 5}}>
+              <View style={{...layout.column, padding: 10}}>
+                <CustomText>
+                  {icon}
+                </CustomText>
+              </View>
+              <View style={{...layout.column, padding: 3}}>
+                <CustomText>{item.session?.category?.name}</CustomText>
+                <CustomText>ID: {item.id}</CustomText>
+                <CustomText>Fecha: {item.session.date}</CustomText>
+                <CustomText>Hora: {item.session.start_time}</CustomText>
+                {labelText &&
+                <CustomText>{labelText}</CustomText>
+                }
+              </View>
+              {/* <CustomText>{JSON.stringify(item)}</CustomText> */}
+            </View>
+            )
+          }}
+          contentContainerStyle={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+          }
+          ListEmptyComponent={() => !loading && (
+            <Text style={{ textAlign: "center", marginTop: 20 }}>No hay clases disponibles</Text>
+          )}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 

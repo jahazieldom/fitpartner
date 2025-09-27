@@ -6,7 +6,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 // import StatusButton from '@/components/StatusButton';
 
 
-export default function ReservationConfirm({
+export default function ReservationInfo({
     session = null,
     onClose = () => {},
     onConfirm = () => {},
@@ -41,27 +41,20 @@ export default function ReservationConfirm({
         <>
             <View style={{paddingVertical: spacing.md}}>
                 <View style={[layout.row, layout.center]}>
-                    <FontAwesome style={{opacity: .7, marginVertical: spacing.sm}} name="calendar-plus-o" size={26} color={colors.blue} />
+                    <FontAwesome style={{opacity: .7, marginVertical: spacing.sm}} name="calendar-check-o" size={26} color={colors.success} />
                 </View>
-                <CustomText style={{...components.cardTitle, textAlign: 'center'}}>Confirmar reservación</CustomText>
+                <CustomText style={{...components.cardTitle, textAlign: 'center'}}>Reservación confirmada</CustomText>
             </View>
             <Text style={{textAlign: 'center', paddingVertical: spacing.lg}}>
-                Reservar {session.category?.name} el {formatearFechaISO(session.date)} a las {formatTime(session.start_time)}
+                Reservado {session.category?.name} el {formatearFechaISO(session.date)} a las {formatTime(session.start_time)}
             </Text>
 
-            <View style={[layout.row, layout.spaceBetween, {marginBottom: 10}]}>
+            <View style={[layout.row, layout.center, {marginBottom: 10}]}>
                 <TouchableOpacity
                 style={[components.button, {paddingVertical: 12}, {backgroundColor: colors.muted}]}
                 onPress={onClose}
                 >
-                <Text>Cancelar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                style={[components.button, {paddingVertical: 12}]}
-                onPress={onConfirm}
-                >
-                <Text style={components.buttonText}>Confirmar reserva</Text>
+                <Text>Cancelar reservación</Text>
                 </TouchableOpacity>
             </View>
         </>

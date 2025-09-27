@@ -3,10 +3,11 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { colors, typography, components, spacing, layout } from "@/styles";
 import CustomText from '@/components/CustomText';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 // import StatusButton from '@/components/StatusButton';
 
 
-export default function ReservationConfirm({
+export default function ReservationWaitlist({
     session = null,
     onClose = () => {},
     onConfirm = () => {},
@@ -41,27 +42,20 @@ export default function ReservationConfirm({
         <>
             <View style={{paddingVertical: spacing.md}}>
                 <View style={[layout.row, layout.center]}>
-                    <FontAwesome style={{opacity: .7, marginVertical: spacing.sm}} name="calendar-plus-o" size={26} color={colors.blue} />
+                    <MaterialCommunityIcons style={{opacity: .7, marginVertical: spacing.sm}}  name="calendar-clock-outline" size={30} color={colors.danger} />
                 </View>
-                <CustomText style={{...components.cardTitle, textAlign: 'center'}}>Confirmar reservación</CustomText>
+                <CustomText style={{...components.cardTitle, textAlign: 'center'}}>Únete a la lista de espera</CustomText>
             </View>
             <Text style={{textAlign: 'center', paddingVertical: spacing.lg}}>
-                Reservar {session.category?.name} el {formatearFechaISO(session.date)} a las {formatTime(session.start_time)}
+                La sesión de {session.category?.name} del {formatearFechaISO(session.date)} a las {formatTime(session.start_time)} ya está llena. Puedes unirte a la lista de espera por si se libera un lugar.
             </Text>
 
-            <View style={[layout.row, layout.spaceBetween, {marginBottom: 10}]}>
-                <TouchableOpacity
-                style={[components.button, {paddingVertical: 12}, {backgroundColor: colors.muted}]}
-                onPress={onClose}
-                >
-                <Text>Cancelar</Text>
-                </TouchableOpacity>
-
+            <View style={[layout.row, layout.center, {marginBottom: 10}]}>
                 <TouchableOpacity
                 style={[components.button, {paddingVertical: 12}]}
-                onPress={onConfirm}
+                onPress={onClose}
                 >
-                <Text style={components.buttonText}>Confirmar reserva</Text>
+                <Text style={components.buttonText}>Unirme en lista de espera</Text>
                 </TouchableOpacity>
             </View>
         </>

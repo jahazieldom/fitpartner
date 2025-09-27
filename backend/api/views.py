@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.conf import settings
-from clients.models import Client, ClientPlan
+from clients.models import Client, ClientPlan, ClientPushToken
 from plans.models import Plan
 from core.models import CompanySettings
 from activities.models import ActivityTemplate, ActivitySession, Reservation
@@ -15,6 +15,7 @@ from .serializers import (
     ActivitySessionSerializer,
     ClientPlanSerializer,
     ReservationSerializer,
+    ClientPushTokenSerializer,
 )
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -22,6 +23,18 @@ from django.urls import reverse
 import stripe
 from api.pagination import CustomLimitOffsetPagination
 
+class ClientPushTokenViewSet(viewsets.ModelViewSet):
+    serializer_class = ClientPushTokenSerializer
+    queryset = ClientPushToken.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        token = request.data.get("expo_push_token")
+        user = request.user
+        if not token:
+            return Response({"error": "No token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        ClientPushToken.objects.update_or_create(user=user, defaults={"token": token})
+        return Response({"success": True})
 
 class PlanViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Plan.objects.all()
@@ -31,6 +44,14 @@ class RegisterView(generics.CreateAPIView):
     queryset = Client.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = []
+
+
+def paginated_queryset(queryset, *, serializer, request):
+    paginator = CustomLimitOffsetPagination()
+    paginated_qs = paginator.paginate_queryset(queryset, request)
+    _serializer = serializer(paginated_qs, many=True)
+
+    return paginator.get_paginated_response(_serializer.data)
 
 @api_view(['POST'])
 def create_checkout_link(request):
@@ -128,13 +149,6 @@ def user_dashboard(request):
         "classes": ActivityTemplateSerializer(classes, many=True).data
     })
 
-def paginated_queryset(queryset, *, serializer, request):
-    paginator = CustomLimitOffsetPagination()
-    paginated_qs = paginator.paginate_queryset(queryset, request)
-    _serializer = serializer(paginated_qs, many=True)
-
-    return paginator.get_paginated_response(_serializer.data)
-
 @api_view(['GET'])
 def classes(request):
     objects = ActivityTemplate.objects.filter(is_active=True).order_by("name").distinct("name")
@@ -149,7 +163,7 @@ def reservations(request):
     if filter_ser.is_valid():
         date = filter_ser.validated_data.get("date")
         class_name = filter_ser.validated_data.get("class_name")
-        reservations = Reservation.objects.none
+        reservations = Reservation.objects.none()
         
         if current_plan:
             current_plan.set_remaining_sessions()
@@ -214,11 +228,54 @@ def activity_session_waitlist(request, activity_session_id):
 
 
 @api_view(['GET'])
-def get_user_reservations(request):
-    today = timezone.now().date()
+def account_reservations(request):
     client = request.user.client
-    objects = client.reservations.filter(
-        cancelled_at__isnull=True,
-        session__date__gte=today,
-    )
-    return paginated_queryset(objects, serializer=ActivityTemplateSerializer, request=request)
+    date = request.data.get("date")
+    objects = Reservation.objects.filter(
+        client_plan__client=client,
+    ).select_related("session")
+
+    if date:
+        objects = objects.filter(session__date=date)
+
+    return paginated_queryset(objects, serializer=ReservationSerializer, request=request)
+
+@api_view(['POST'])
+def reservation_check_in(request, id):
+    client = request.user.client
+    reservation = Reservation.objects.filter(
+        id=id,
+        client_plan__client=client,
+    ).first()
+
+    if not reservation.can_check_in:
+        return Response({
+            "status": "error",
+            "reservation": "El checkin para esta sesión no está activo"
+        })
+    
+    if not reservation.checked_in:
+        reservation.checked_in = timezone.now()
+        reservation.save()
+
+    return Response({
+        "status": "success",
+        "reservation": ReservationSerializer(reservation).data
+    })
+
+@api_view(['POST'])
+def reservation_cancel(request, id):
+    client = request.user.client
+    reservation = Reservation.objects.filter(
+        id=id,
+        client_plan__client=client,
+    ).first()
+    
+    if not reservation.cancelled_at:
+        reservation.cancelled_at = timezone.now()
+        reservation.save()
+
+    return Response({
+        "status": "success",
+        "reservation": ReservationSerializer(reservation).data
+    })

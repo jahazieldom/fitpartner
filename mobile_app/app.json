@@ -9,8 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
-      "userInterfaceStyle": "light" 
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -39,11 +38,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "androidStatusBar": {
-      "backgroundColor": "#1E1E1E",
-      "barStyle": "light-content",
-      "translucent": false
     }
   }
 }

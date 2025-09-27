@@ -49,7 +49,10 @@ class Client(BaseModel):
         if self.current_plan:
             current_plan_id = self.current_plan.id
 
-        return self.plans.exclude(id=current_plan_id).prefetch_related("plan")
+        return self.plans.exclude(
+            is_active=False,
+            cancelled_at__isnull=True,
+        ).exclude(id=current_plan_id).prefetch_related("plan")
 
 class ClientPlan(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="plans")
@@ -124,3 +127,8 @@ class ClientPlan(BaseModel):
             return f"{self.plan.name} (expira en {days} días)"
         
         return f"{self.plan.name} (sin vencimiento)"
+
+class ClientPushToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
