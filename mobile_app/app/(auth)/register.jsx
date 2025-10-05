@@ -1,29 +1,21 @@
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { layout, typography, components, spacing } from "../../styles";
 import { validateEmail, register, getCompanies } from "../../services/auth";
 import { useAuth } from "@/context/AuthContext";
 import { showMessage } from "react-native-flash-message";
 import Autocomplete from '@/components/Autocomplete';
-
-const getRandomString = (length = 10) => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for(let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
+import CustomText from '@/components/CustomText';
+import DatePicker from '@/components/DatePicker';
 
 export default function RegisterWizard({ onSubmit }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
 
-  const initialPass = getRandomString(9)
-  const [email, setEmail] = useState(getRandomString(5) + "@test.com");
-  const [password, setPassword] = useState(initialPass);
-  const [confirmPassword, setConfirmPassword] = useState(initialPass);
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -33,7 +25,10 @@ export default function RegisterWizard({ onSubmit }) {
   const goToLogin = () => router.push("/(auth)/login");
   const { setAuthenticated } = useAuth();
 
-  
+  // Refs para los inputs
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+  const birthDateRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +82,7 @@ export default function RegisterWizard({ onSubmit }) {
     }
 
     let passwordValidationError = validatePassword(password)
+    
     if (passwordValidationError) {
       Alert.alert("Error", passwordValidationError);
       return
@@ -100,10 +96,12 @@ export default function RegisterWizard({ onSubmit }) {
 
     if (password !== confirmPassword) {
       Alert.alert("Error de validación", "Las contraseñas no coinciden");
+      passwordRef.current?.focus()
       return;
     }
 
-    setStep(2);
+    setStep(2)
+
   };
 
   const handleSubmit = async () => {
@@ -131,23 +129,30 @@ export default function RegisterWizard({ onSubmit }) {
         duration: 3000,
       });
     } catch (error) {
+      console.log(error)
       Alert.alert("Error en registro", error.data?.detail);
     }
   };
 
+  const [showPicker, setShowPicker] = useState(false);
+
   return (
     <View style={[layout.padding]}>
-      <Text style={typography.heading}>Sign Up</Text>
+      <Text style={typography.heading}>Crear mi cuenta</Text>
 
       {step === 1 && (
         <>
+        <CustomText style={{paddingVertical: 10}}>Esta información es la que usarás para iniciar sesión.</CustomText>
           <TextInput
             placeholder="Email"
             style={components.input}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
-            autoCapitalize="none"
+            autoCapitalize="none" 
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            autoFocus
           />
 
           <TextInput
@@ -156,6 +161,10 @@ export default function RegisterWizard({ onSubmit }) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            ref={passwordRef}
+            returnKeyType="next"
+            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+            selectTextOnFocus
           />
 
           <TextInput
@@ -164,13 +173,17 @@ export default function RegisterWizard({ onSubmit }) {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
+            ref={confirmPasswordRef}
+            returnKeyType="done"
+            onSubmitEditing={handleNextStep}
+            selectTextOnFocus
           />
 
           <TouchableOpacity
             style={[components.button, { marginTop: spacing.md }]}
             onPress={handleNextStep}
           >
-            <Text style={components.buttonText}>Next</Text>
+            <Text style={components.buttonText}>Continuar</Text>
           </TouchableOpacity>
         </>
       )}
@@ -185,35 +198,37 @@ export default function RegisterWizard({ onSubmit }) {
               initialValue={company}
               onSelect={(item) => setCompany(item)}
               containerStyle={{ marginVertical: 16 }}
+              autoFocus
             />
           </View>
           { Boolean(company) && 
           <>
             <TextInput
-              placeholder="First Name"
+              placeholder="Nombre"
               style={components.input}
               value={firstName}
               onChangeText={setFirstName}
             />
 
             <TextInput
-              placeholder="Last Name"
+              placeholder="Apellidos"
               style={components.input}
               value={lastName}
               onChangeText={setLastName}
             />
 
             <TextInput
-              placeholder="Birth Date (YYYY-MM-DD)"
+              placeholder="Fecha de nacimiento"
               style={components.input}
               value={birthDate}
-              onChangeText={setBirthDate}
+              ref={birthDateRef}
+              onFocus={() => {setShowPicker(true)}}
             />
             <TouchableOpacity
               style={[components.button, { marginTop: spacing.md }]}
               onPress={handleSubmit}
             >
-              <Text style={components.buttonText}>Register</Text>
+              <Text style={components.buttonText}>Finalizar</Text>
             </TouchableOpacity>
           </>
           }
@@ -223,16 +238,27 @@ export default function RegisterWizard({ onSubmit }) {
             style={[components.button, { marginTop: spacing.sm }]}
             onPress={() => setStep(1)}
           >
-            <Text style={components.buttonText}>Back</Text>
+            <Text style={components.buttonText}>Atrás</Text>
           </TouchableOpacity>
         </>
       )}
+
+
+      <DatePicker 
+        visible={showPicker} 
+        onClose={() => setShowPicker(false)}
+        onConfirm={(date) => {
+          setBirthDate(date.toISOString().split('T')[0])
+          birthDateRef.current.blur()
+        }}
+        label="Fecha de nacimiento"
+      />
 
       <TouchableOpacity
         style={[components.button, { marginTop: spacing.md }]}
         onPress={goToLogin}
       >
-        <Text style={components.buttonText}>Already have an account? Log in</Text>
+        <Text style={components.buttonText}>¿Ya tienes una cuenta? Inicia sesión</Text>
       </TouchableOpacity>
     </View>
   );

@@ -20,8 +20,11 @@ from .serializers import (
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.urls import reverse
-import stripe
 from api.pagination import CustomLimitOffsetPagination
+from django.db import connection
+import stripe
+from tenants.models import UserCompany
+from public_api.serializers import AppUserDetailSerializer
 
 class ClientPushTokenViewSet(viewsets.ModelViewSet):
     serializer_class = ClientPushTokenSerializer
@@ -142,7 +145,12 @@ def user_dashboard(request):
         "stripe_enabled": conf.stripe_enabled,
     }
 
+    app_user_detail = UserCompany.objects.get(
+        user_email=request.user.email, 
+        company_schema_name=connection.tenant.schema_name
+    )
     return Response({
+        "user": AppUserDetailSerializer(app_user_detail).data,
         "company_info": company_info,
         "current_plan": current_plan,
         "plans": plans,
@@ -163,11 +171,15 @@ def reservations(request):
     if filter_ser.is_valid():
         date = filter_ser.validated_data.get("date")
         class_name = filter_ser.validated_data.get("class_name")
+        location_id = filter_ser.validated_data.get("location_id")
         reservations = Reservation.objects.none()
         
         if current_plan:
             current_plan.set_remaining_sessions()
             reservations = current_plan.reservations.filter(cancelled_at__isnull=True)
+
+        if location_id:
+            reservations = current_plan.reservations.filter(location_id=location_id)
 
         sessions = ActivitySession.objects.prefetch_related("template").filter(
             template__is_active=True

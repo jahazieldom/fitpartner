@@ -3,6 +3,8 @@ from django_tenants.utils import schema_context
 from django.db import models
 from django.utils.functional import cached_property
 from django.conf import settings
+from django_tenants.utils import schema_context
+from locations.models import Location
 
 class Company(TenantMixin):
     name = models.CharField(max_length=255)
@@ -30,6 +32,13 @@ class Company(TenantMixin):
         with schema_context(self.schema_name):
             self._settings_cache, _ = CompanySettings.objects.get_or_create(id=1)
         return self._settings_cache
+
+    
+    def get_locations(self):
+        locations = []
+        with schema_context(self.schema_name):
+            locations = list(Location.objects.all())
+        return locations
 
 
 class Domain(DomainMixin):

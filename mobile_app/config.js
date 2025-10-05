@@ -1,8 +1,8 @@
 // config.js
 const ENV = {
   dev: { 
-    API_BASE_URL: "http://192.168.1.9:8000",
-    TENANT_API_BASE_URL: "http://192.168.1.9:8000",
+    API_BASE_URL: "http://192.168.1.17:8000",
+    TENANT_API_BASE_URL: "http://192.168.1.17:8000",
     LOCAL_DEVELOPMENT: true,
   },
   prod: { 

@@ -9,6 +9,7 @@ from utils.functions import get_tenant
 from activities.models import ActivityTemplate, ActivitySession, Reservation
 from clients.models import ClientPushToken
 from django.utils import timezone
+from locations.models import Location
 
 User = get_user_model()
 
@@ -90,6 +91,7 @@ class ActivityTemplateSerializer(serializers.ModelSerializer):
 class ActivityFilterSerializer(serializers.Serializer):
     date = serializers.DateField(required=False)
     class_name = serializers.CharField(required=False)
+    location = serializers.IntegerField(required=False)
 
 class ActivitySessionSerializer(serializers.ModelSerializer):
     attendees = serializers.SerializerMethodField()
@@ -196,3 +198,17 @@ class ClientPushTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientPushToken
         fields = ["token"]
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = [
+            "id",
+            "name",
+            "full_address",
+            "contact_name",
+            "contact_email",
+            "contact_phone",
+            "lat",
+            "lng",
+        ]

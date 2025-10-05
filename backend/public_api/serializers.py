@@ -3,6 +3,7 @@ from tenants.models import UserCompany
 from django.contrib.auth import get_user_model
 from utils.functions import get_tenant
 from rest_framework_simplejwt.tokens import RefreshToken
+from api.serializers import LocationSerializer
 
 User = get_user_model()
 
@@ -41,6 +42,7 @@ class AppUserDetailSerializer(serializers.ModelSerializer):
                 "base_url": uc.get_base_url(),
                 "access": str(access),
                 "refresh": str(refresh),
+                "locations": LocationSerializer(uc.tenant.get_locations(), many=True).data,
             })
 
         return data

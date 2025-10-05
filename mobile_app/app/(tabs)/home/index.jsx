@@ -18,10 +18,13 @@ export default function HomeScreen() {
   const [classes, setClasses] = useState([])
   const [refreshing, setRefreshing] = useState(false)
 
+  const {setCompanies} = useAuth(); 
+
   const router = useRouter();
 
   const setHomeInfo = async () => {
     let dashboard = await getDashboard()
+    setCompanies(dashboard.user.companies)
     setPlans(dashboard.plans)
     setCompany(dashboard.company_info)
     setCurrentPlan(dashboard.current_plan)

@@ -8,8 +8,8 @@ from dateutil.relativedelta import relativedelta
 class ValidityType(models.TextChoices):
     NO_EXPIRY = "no_expiry", _("Sin vencimiento")
     FROM_PURCHASE = "from_purchase", _("Desde la fecha de compra")
-    FROM_FIRST_USE = "from_first_use", _("Desde el primer uso")
-    CALENDAR_MONTH = "calendar_month", _("Por mes calendario")
+    # FROM_FIRST_USE = "from_first_use", _("Desde el primer uso")
+    # CALENDAR_MONTH = "calendar_month", _("Por mes calendario")
     FIXED_DATE = "fixed_date", _("Fecha fija")
 
 

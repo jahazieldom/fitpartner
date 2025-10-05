@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
           };
 
           setState(auth);
-          setAuthStore(auth); // ✅ actualizar store de zustand
+          setAuthStore(auth); 
         } else {
           router.replace("/(auth)/login");
         }
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     setState(auth);
-    setAuthStore(auth); // ✅ actualizar store de zustand
+    setAuthStore(auth);
 
 
     // Guardar en storage
@@ -98,6 +98,14 @@ export const AuthProvider = ({ children }) => {
     setState(updatedState);          // Actualiza el contexto
     setAuthStore(updatedState);      // Actualiza el store de zustand
     await setItem("company", JSON.stringify(newCompany)); // Guarda en storage
+  };
+  const setCompanies = async (companies) => {
+    const updatedState = {
+      ...state,
+      companies: companies,
+    };
+    setState(updatedState);          // Actualiza el contexto
+    setAuthStore(updatedState);      // Actualiza el store de zustand
   };
 
   const logout = async () => {
@@ -127,6 +135,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         setCompany,
+        setCompanies,
       }}
     >
       {children}

@@ -10,11 +10,33 @@ export default function TitleCompanyName() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const companyName = company?.company_name || "Selecciona una empresa";
+  const location = company?.location;
+  const items = []
 
   const handleSwitchCompany = (newCompany) => {
     setCompany(newCompany); // Actualiza la empresa en el contexto
     setModalVisible(false);
   };
+
+  user?.companies.forEach((company) => {
+    if(company.locations.length > 1) {
+      company.locations.forEach(loc => {
+        items.push({
+          "key": `${company.id}-${loc.id}`,
+          "label": `${company.company_name} - ${loc.name}`,
+          ...company,
+          "location": loc,
+        })
+      })
+    } else {
+      items.push({
+        "key": `${company.id}-`,
+        "label": company.company_name,
+        ...company,
+        "location": null,
+      })
+    }
+  })
 
   return (
     <View
@@ -25,9 +47,17 @@ export default function TitleCompanyName() {
       }}
     >
       <View style={[layout.row, { justifyContent: "space-between" }]}>
-        <CustomText style={{ fontSize: 17, lineHeight: 35 }}>
-          {companyName}
-        </CustomText>
+        <View>
+          <CustomText style={{ fontSize: 17 }}>
+            {companyName}
+          </CustomText>
+
+          { Boolean(location) && 
+          <CustomText style={{ fontSize: 15, color: colors.secondary }}>
+            {location.name}
+          </CustomText>
+          }
+        </View>
 
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Octicons name="arrow-switch" size={18} color={colors.primary} />
@@ -61,8 +91,8 @@ export default function TitleCompanyName() {
               Cambiar gimnasio
             </CustomText>
             <FlatList
-              data={user?.companies || []}
-              keyExtractor={(item) => item.id.toString()}
+              data={items}
+              keyExtractor={(item) => item.key}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={{
@@ -73,7 +103,7 @@ export default function TitleCompanyName() {
                   onPress={() => handleSwitchCompany(item)}
                 >
                   <CustomText style={{ fontSize: 16 }}>
-                    {item.company_name}
+                    {item.label}
                   </CustomText>
                 </TouchableOpacity>
               )}

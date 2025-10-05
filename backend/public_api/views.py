@@ -10,6 +10,7 @@ from api.serializers import RegisterSerializer
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from api.serializers import LocationSerializer
 
 User = get_user_model()
 
@@ -121,10 +122,12 @@ def companies(request):
     data = []
 
     for company in Company.objects.all().exclude(schema_name="public"):
+        locations_serializer = LocationSerializer(company.get_locations(), many=True)
         data.append({
             "schema_name": company.schema_name,
             "name": company.name,
             "logo": "https://placehold.co/500x300",
+            "locations": locations_serializer.data,
         })
 
     return Response({

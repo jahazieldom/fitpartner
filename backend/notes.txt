@@ -1,13 +1,12 @@
-https://schedly.io/
-https://fitssey.com/es
+- TODO:
+    - Comando para inicializar el schema public
+    - Registrar tenant con la siguiente información:
+        - Clave o schema_name para la cuenta
+        - Credenciales de acceso (emal y contraseña)
+        - Nombre comercial y dirección completa
+        - Correo de bienvenida con credenciales temporales
+        - Se debe crear una sucursal por defecto que con la dirección especificada en el registro y con nombre por defecto "Suc. matriz" o algo similar
 
-
-Funcionalidad app movil:
-- Registro de clientes
-- Configuración de perfil
-- Consulta de planes
-- Contratación de plan
-- Apartado de clases
-- Lista de espera a clases
-- Cancelar asistencia de clase
-- Mensajería
+    - Modificar flujo de registro para que al seleccionar el gimnasio se seleccione la sucursal si hay mas de 1
+    - Modificar pantalla de reservas para enviar por GET la sucursal del gimnasio
+    - Módulo de notificaciones

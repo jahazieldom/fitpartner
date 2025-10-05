@@ -24,7 +24,7 @@ import ReservationInfo from '@/components/ReservationInfo';
 import ReservationWaitlist from '@/components/ReservationWaitlist';
 import Modal from "react-native-modal";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-
+import { useAuth } from "@/context/AuthContext";
 
 dayjs.extend(customParseFormat);
 
@@ -37,6 +37,7 @@ export default function MyWeekCalendar() {
   const today = dayjs();
   const todayStr = today.format('YYYY-MM-DD');
 
+  const { company } = useAuth();
   const [date, setDate] = useState(todayStr);
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
@@ -66,7 +67,10 @@ export default function MyWeekCalendar() {
   const loadData = useCallback(async (forDate) => {
     try {
       setLoading(true);
-      const res = await getReservationPage({ date: forDate });
+      console.log("/////////////")
+      console.log(company.location?.id)
+      console.log("/////////////")
+      const res = await getReservationPage({ date: forDate, location: company.location?.id });
       const { classes, sessions } = res;
       const filterNames = classes.map(c => c.name);
       setFilters(filterNames);
@@ -96,7 +100,10 @@ export default function MyWeekCalendar() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const res = await getReservationPage({ date });
+      console.log("/////////////")
+      console.log(company.location?.id)
+      console.log("/////////////")
+      const res = await getReservationPage({ date, location: company.location?.id });
       const { classes, sessions } = res;
       const filterNames = classes.map(c => c.name);
       setFilters(filterNames);
@@ -211,7 +218,6 @@ export default function MyWeekCalendar() {
         <WeekCalendar
           current={date}
           onDayPress={(day) => {
-            console.log(day.dateString)
             setDate(day.dateString)
           }}
           minDate={todayStr}
